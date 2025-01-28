@@ -1,0 +1,62 @@
+Create new branch:
+
+1. pick name, create
+git branch <branch-name>
+
+2. Switch to the newly created branch:
+git checkout <branch-name>
+
+(1&2. Alternatively, you can combine both creating and switching branches in one step using the -b flag:
+git checkout -b <branch-name>)
+
+3. Stage, commit changes:
+git add . (or git add <filename> to track only specific file)
+git commit -m "<commit-message>"
+
+4. Push:
+git push --set-upstream origin <branch-name> (first push)
+git push origin <branch-name> (subsequent pushes)
+
+
+Merge Branches:
+
+1. switch to the branch you want to merge into (usually main or master)
+git checkout <branch-name-to-merge-into>
+
+2. Check if branch is upto date:
+git pull <branch-to-merge-into>
+
+2. Merge the branch into main
+git merge <branch-name-to-merge-from>
+
+3. If conflicts
+git add <resolved-file> (eg: git add file1.py file2.py)
+git commit -m "Resolved merge conflicts"
+
+4. Push
+git push origin <branch-name-to-merge-into> (this is to remote repository)
+
+Branch Actions:
+
+1. List all branches:
+git branch
+
+2. Delete branch locally
+git branch -d <branch-name>
+
+3. Delete a remote branch:
+git push origin --delete <branch-name>
+
+
+Check conflicts between Origin and Master branch:
+git fetch origin: Downloads the latest changes from the remote without modifying your working directory.
+git merge origin/master: Merges the changes from the remote master branch into your local branch. If there are conflicts, Git marks them for you to resolve.
+git status: Displays the status of your repository, including any conflicts.
+git add <file>: Stages the resolved files (after fixing conflicts).
+git commit -m "Merge remote-tracking branch 'origin/master'": Commits the merge with a message explaining what happened.
+git push origin master: Pushes the changes (including the merge) to the remote GitHub repository.
+
+
+
+
+

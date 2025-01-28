@@ -1,0 +1,28 @@
+Docker commands
+
+start docker:
+sudo systemctl start docker
+-------------------------------------------------------------------------------------------------------------------
+check if image is running:
+sudo docker ps
+-------------------------------------------------------------------------------------------------------------------
+download image (splash):
+sudo docker pull scrapinghub/splash
+-------------------------------------------------------------------------------------------------------------------
+run image (interactive mode):
+sudo -i
+sudo docker run -it -p 8050:8050  -e USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"  scrapinghub/splash
+
+-d runs in detached mode,
+-it in interactive mode
+-p 8050:8050 - binds port 8050 (default Splash port) on local machine to port 8050 in the container.
+-------------------------------------------------------------------------------------------------------------------
+stop container:
+sudo docker ps
+sudo docker stop <container_id>
+
+Container id obtained from docker ps
+-------------------------------------------------------------------------------------------------------------------
+stop docker:
+sudo systemctl stop docker
+-------------------------------------------------------------------------------------------------------------------

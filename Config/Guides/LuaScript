@@ -1,0 +1,116 @@
+function main(splash, args)
+  splash.private_mode_enabled = false
+  --[[
+        headers = {
+                    ['User-Agent'] = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
+                    ['Other headers']
+                  }
+  --]]
+  splash:on_request(function(request))
+      request:set_header('User-Agent','Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0') 
+  url=args.url   
+  assert(splash:go(url))
+  assert(splash:wait(2))
+  
+  input_box = assert(splash:select)
+  return {     
+    png = splash:png(),     
+    html = splash:html()   
+  } 
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
+function main(splash, args)
+    -- Get the URL from the input arguments
+    url = args.url
+
+    -- Set a custom User-Agent to avoid being blocked
+    splash:set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+    -- Set additional headers like Accept-Language and Referer for a more realistic request
+    splash:set_headers({
+        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        ["Accept-Language"] = "en-US,en;q=0.9",
+        ["Referer"] = "https://www.google.com"
+    })
+
+    -- Navigate to the URL and wait for the page to load
+    assert(splash:go(url))
+
+    -- Wait for a specific time to ensure the page is fully loaded (increase wait time if necessary)
+    assert(splash:wait(10))  -- Wait 10 seconds to make sure the page loads completely
+
+    -- You can also wait for specific elements (e.g., an element that indicates the page is fully loaded)
+    -- assert(splash:wait('div#specific-element'))  -- Use an actual element selector if needed
+
+    -- Enable JavaScript execution
+    assert(splash:runjs('document.readyState == "complete"'))
+
+    -- Optional: Capture a screenshot (PNG) and the page's HTML for inspection
+    local result = {
+        png = splash:png(),  -- Capture the page as a PNG image
+        html = splash:html()  -- Get the HTML content of the page
+    }
+
+    -- Return the result
+    return result
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
+function main(splash)
+    splash.private_mode_enabled = false
+    splash:set_viewport_full()  -- Set the viewport to full size
+
+    -- Go to the target URL
+    splash:go(splash:go(splash.args.url))
+    splash:wait(2)  -- Wait a bit longer for the initial page to load
+
+    local max_scrolls = 10  -- Adjust based on how many scrolls you want to make
+    local current_scrolls = 0
+    local last_article_count = 0
+    local new_article_count = 0
+
+    -- Loop through scrolling and loading content
+    while current_scrolls < max_scrolls do
+        -- Scroll down to the bottom
+        -- splash:runjs('window.scrollTo(0, document.body.scrollHeight);')
+        splash:runjs('window.scrollBy(0, 300);')
+        splash:wait(5)  -- Wait a bit for new content to load
+
+        -- Check how many articles are loaded after the scroll
+        new_article_count = splash:runjs('return document.querySelectorAll(".xrnccd").length')
+
+        -- Debugging: Check the number of articles loaded
+        print("Articles loaded after scroll: " .. tostring(new_article_count))
+
+        -- If no new articles are loaded, break the loop
+        if new_article_count == last_article_count then
+            print("No new content loaded. Stopping scroll.")
+            break
+        end
+
+        -- Update variables for the next iteration
+        last_article_count = new_article_count
+        current_scrolls = current_scrolls + 1
+    end
+
+    -- Ensure the page has loaded and capture the HTML to inspect it
+    local page_html = splash:html()
+
+    -- Debugging: Print the raw HTML content of the page
+    print("HTML Content After Scroll: " .. tostring(page_html))
+
+    -- After scrolling, ensure that the viewport size is set to capture the full page
+    splash:set_viewport_size(1200, 1500)  -- Try an arbitrary large size if page height isn't working as expected
+
+    -- Capture the full page screenshot
+    local screenshot = splash:png()
+
+    -- Return the captured screenshot
+    return screenshot
+end
+
+
+
