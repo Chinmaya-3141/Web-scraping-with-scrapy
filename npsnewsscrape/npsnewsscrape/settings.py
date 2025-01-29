@@ -73,7 +73,7 @@ ITEM_PIPELINES = {
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-AUTOTHROTTLE_ENABLED = True
+# AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
@@ -101,7 +101,7 @@ FEED_EXPORT_ENCODING = "utf-8"
 FEED_FORMAT = 'json'
 
 # Set the feed URI to specify the output file (it can be a path to your desired location)
-FEED_URI = 'news.json'
+FEED_URI = '../Outputs/news.json'  
 
 RETRY_ENABLED = True
 RETRY_TIMES = 2  # Number of retries
