@@ -35,13 +35,13 @@ class SQLite3Pipeline:
                 self.c.execute('''
                     CREATE TABLE news (
                         transaction_id TEXT PRIMARY KEY,
+                        article_datetime TEXT,
                         search_term TEXT,
                         country_name TEXT,
                         country_language TEXT,
                         news_source TEXT,
                         headline TEXT,
                         description TEXT,
-                        article_datetime TEXT,
                         source_link TEXT,
                         ambuja_kawach_count INTEGER,
                         ambuja_cool_walls_count INTEGER,
@@ -101,14 +101,14 @@ class SQLite3Pipeline:
         if duplicate_count == 0:  # If no duplicate exists, insert
             self.c.execute('''
                                 INSERT INTO news (
-                                    transaction_id, 
+                                    transaction_id,
+                                    article_datetime,                                    
                                     search_term, 
                                     country_name, 
                                     country_language, 
                                     news_source,
                                     headline,
                                     description,
-                                    article_datetime,
                                     source_link,
                                     ambuja_kawach_count,
                                     ambuja_cool_walls_count,
@@ -119,13 +119,13 @@ class SQLite3Pipeline:
                             ''', 
                                 (
                                     item.get('transaction_id'),
+                                    item.get('article_datetime'),                                
                                     item.get('search_term'),
                                     item.get('country_name'),
                                     item.get('country_language'),
                                     item.get('news_source'),
                                     item.get('headline'),
                                     item.get('description'),
-                                    item.get('article_datetime'),
                                     item.get('source_link'),
                                     item.get('ambuja_kawach_count', 0),  # Default to 0 if no count is provided
                                     item.get('ambuja_cool_walls_count', 0),

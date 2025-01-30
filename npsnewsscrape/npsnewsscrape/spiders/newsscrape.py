@@ -1,8 +1,8 @@
 import scrapy
-import re, uuid, string, time, random, logging
+import re, uuid, string
 from datetime import datetime
 from googlenewsdecoder import gnewsdecoder
-from twisted.internet.threads import deferToThread
+# from twisted.internet.threads import deferToThread
 
 # from scrapy_splash import SplashRequest
 
@@ -339,43 +339,41 @@ class NewsscrapeSpider(scrapy.Spider):
                     raise ValueError("No content found for og:site_name")
             except Exception:
                 try:
-                    pattern = r"https://(?:[a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)(?=\.[a-zA-Z]+(?:\/|$))"
+                    pattern = r"https?://(?:[a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)(?=\.[a-zA-Z]+(?:\/|$))"
                     match = re.search(pattern, response.meta['source_link'])
                     if match:
-                        print(match.group(1))  # This will print the domain name
+                        source = match.group(1)  # This will print the domain name
                 except Exception:
                     source = "Not Available"  # Default to "Not Available" if both fail
-                    
-
-        
         
         # Attempt to get source link
-        try:
-            source_url = response.xpath("//meta[@property='og:url']/@content").get()
-            if not source_url:
-                raise ValueError("No content found for og:url")
-        except Exception:
-            try:
-                source_url = response.xpath("//meta[@name='og:url']/@content").get()
-                if not source_url:
-                    raise ValueError("No content found for og:url")
-            except Exception:
-                source_url = full_url  # Fallback to the full URL if both XPaths fail
+        # try:
+        #     source_url = response.xpath("//meta[@property='og:url']/@content").get()
+        #     if not source_url:
+        #         raise ValueError("No content found for og:url")
+        # except Exception:
+        #     try:
+        #         source_url = response.xpath("//meta[@name='og:url']/@content").get()
+        #         if not source_url:
+        #             raise ValueError("No content found for og:url")
+        #     except Exception:
+        #         source_url = full_url  # Fallback to the full URL if both XPaths fail
      
         # Use regex to extract the domain (text after https:// and before the first /)
         # match = re.search(r'https?://([^/]+)/', full_url)
         # domain = match.group(1) if match else "unknown"
     
         # Prepare the final dictionary to return (this is the final yield)
+        
         item =  {
-                'transaction_id': response.meta['transaction_id'],  
+                'transaction_id': response.meta['transaction_id'],
+                'article_datetime': response.meta['article_datetime'],
                 'search_term': response.meta['search_term'],        
                 'country_name': response.meta['country_name'],      
                 'country_language': response.meta['country_language'],
                 'news_source': source,
                 'headline': response.meta['headline'],
                 'description': description,
-                'article_datetime': response.meta['article_datetime'],
                 'source_link': response.meta['source_link'],
                 #'source': domain,  # Extracted domain (website source)
                 **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          

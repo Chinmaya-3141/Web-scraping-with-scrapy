@@ -45,14 +45,14 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             self.logger.info(f"Fetching dynamic page (Selenium): {request.url}")
             self.driver.get(request.url)
 
-            # Generate a random wait time between 3 and 4 seconds
+            # Generate a random wait time between 2 and 4 seconds
             rand_wait = random.uniform(2, 4)
         
             # Wait for the randomly generated time
             time.sleep(rand_wait)
 
             # Log the time taken for loading
-            self.logger.info(f"Page loaded in 3 seconds: {request.url}")
+            self.logger.info(f"Page loaded in {rand_wait} seconds: {request.url}")
 
             # Get the fully rendered HTML page source from Selenium
             content = self.driver.page_source

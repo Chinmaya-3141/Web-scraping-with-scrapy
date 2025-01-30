@@ -65,8 +65,8 @@ ROBOTSTXT_OBEY = False
 #     'npsnewsscrape.middlewares.SeleniumMiddleware':543,
 # }
 DOWNLOADER_MIDDLEWARES = {
-    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware': 543,  # Adjust priority if needed
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,  # Retry middleware
+    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware': 543,  # Selenium middleware
 }
 SELENIUM_DRIVER = 'firefox'
 
@@ -81,12 +81,11 @@ SELENIUM_DRIVER = 'firefox'
 ITEM_PIPELINES = {
    #"npsnewsscrape.pipelines.NpsnewsscrapePipeline": 300,
    "npsnewsscrape.pipelines.SQLite3Pipeline": 200,
-   
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-# AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
