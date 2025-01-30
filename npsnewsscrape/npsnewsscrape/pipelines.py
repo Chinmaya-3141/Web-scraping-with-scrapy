@@ -15,9 +15,8 @@ class SQLite3Pipeline:
     
     # Begin feeding data to pipeline
     def open_spider(self, spider):
-        
         logging.warning('Spider - Pipeling Opened')
-        self.connection = sqlite3.connect('news.db')
+        self.connection = sqlite3.connect('../Outputs/news.db')
         self.c = self.connection.cursor()   #cursor object helps execute SQL queries
         try:
             self.c.execute('''

@@ -22,16 +22,20 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/1
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+# CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#   DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 3
+
+# Adds randomness to the delay
+# RANDOMIZE_DOWNLOAD_DELAY = True 
 
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
+
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
@@ -53,9 +57,18 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware": 543,
-#}
+# DOWNLOADER_MIDDLEWARES = {
+#     # 'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+#     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 500,  # Ensure retry middleware is added here
+#     # 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,  # Disable default user-agent middleware
+#     # "npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware": 543,  # Custom middleware, keep or remove if not needed
+#     'npsnewsscrape.middlewares.SeleniumMiddleware':543,
+# }
+DOWNLOADER_MIDDLEWARES = {
+    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware': 543,  # Adjust priority if needed
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,  # Retry middleware
+}
+SELENIUM_DRIVER = 'firefox'
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -101,11 +114,13 @@ FEED_EXPORT_ENCODING = "utf-8"
 FEED_FORMAT = 'json'
 
 # Set the feed URI to specify the output file (it can be a path to your desired location)
-FEED_URI = 'news.json'
+FEED_URI = '../Outputs/news.json'
 
 RETRY_ENABLED = True
-RETRY_TIMES = 2  # Number of retries
-RETRY_HTTP_CODES = [429]#,443]  # Retry on 429 errors
+RETRY_TIMES = 3  # Number of retries
+RETRY_HTTP_CODES = [408, 429, 500, 502, 503, 504]#,443]  # Retry on 429 errors
+# RETRY_PRIORITY_ADJUST = 1  # Adjust the retry priority (can be positive or negative)
+RETRY_DELAY = 15  # Delay between retries, in seconds (adjust this)
 
 # SPLASH_URL = 'http://localhost:8050'
 
