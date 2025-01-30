@@ -4,8 +4,6 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
-# useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 from scrapy.http import HtmlResponse
 # from scrapy.middleware import BaseMiddleware  # This is the correct base class
@@ -38,24 +36,29 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
         return super(NpsnewsscrapeDownloaderMiddleware, cls).from_crawler(crawler, *args, **kwargs)
 
     def process_request(self, request, spider):
-        """Process the request using Selenium WebDriver."""
-        self.logger.info(f"Fetching page: {request.url}")
-        self.driver.get(request.url)
+        """Process the request using Selenium WebDriver only if `selenium=True` in the request's meta."""
+        # Check if the request requires JavaScript rendering
+        if request.meta.get('selenium', False):
+            self.logger.info(f"Fetching dynamic page (Selenium): {request.url}")
+            self.driver.get(request.url)
 
-        # Allow some time for the page to load
-        time.sleep(3)
+            # Allow some time for the page to load
+            time.sleep(3)
 
-        # Log the time taken for loading
-        self.logger.info(f"Page loaded in 3 seconds: {request.url}")
+            # Log the time taken for loading
+            self.logger.info(f"Page loaded in 3 seconds: {request.url}")
 
-        # Get the fully rendered HTML page source from Selenium
-        content = self.driver.page_source
+            # Get the fully rendered HTML page source from Selenium
+            content = self.driver.page_source
 
-        # Log the page content size
-        self.logger.info(f"Page content size: {len(content)} characters")
+            # Log the page content size
+            self.logger.info(f"Page content size: {len(content)} characters")
 
-        # Return an HtmlResponse with the content
-        return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
+            # Return an HtmlResponse with the content
+            return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
+
+        # Let Scrapy handle the request if no JavaScript rendering is needed
+        return None
 
     def process_response(self, request, response, spider):
         """Return the response without changes."""
@@ -69,10 +72,6 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
         """Close the Selenium WebDriver session."""
         self.logger.info("Closing the Selenium WebDriver session.")
         self.driver.quit()
-
-
-
-
 
 class NpsnewsscrapeSpiderMiddleware:
     @classmethod
@@ -102,6 +101,109 @@ class NpsnewsscrapeSpiderMiddleware:
     def spider_opened(self, spider):
         # Logging that the spider has been opened
         spider.logger.info("Spider opened: %s" % spider.name)
+
+
+
+
+# from scrapy import signals
+
+# # useful for handling different item types with a single interface
+# from itemadapter import is_item, ItemAdapter
+# from scrapy.http import HtmlResponse
+# # from scrapy.middleware import BaseMiddleware  # This is the correct base class
+# from scrapy.downloadermiddlewares.retry import RetryMiddleware  # We can inherit from this
+# from selenium import webdriver
+# # from selenium.webdriver.chrome.options import Options as ChromeOptions
+# from selenium.webdriver.firefox.options import Options as FirefoxOptions
+# # from selenium.webdriver.edge.options import Options as EdgeOptions
+# import time
+# import logging
+
+# class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
+#     def __init__(self, *args, **kwargs):
+#         # Set up Firefox WebDriver (headless)
+#         firefox_options = FirefoxOptions()
+#         firefox_options.add_argument('--headless')  # Run Firefox in headless mode
+#         self.driver = webdriver.Firefox(options=firefox_options)
+
+#         # Set up logging
+#         logging.basicConfig(level=logging.INFO)
+#         self.logger = logging.getLogger(__name__)
+
+#         # Ensure the RetryMiddleware is properly initialized
+#         super().__init__(*args, **kwargs)
+
+#     @classmethod
+#     def from_crawler(cls, crawler, *args, **kwargs):
+#         """This method is used to initialize the middleware."""
+#         # Call the parent class's from_crawler to make sure retry settings are applied
+#         return super(NpsnewsscrapeDownloaderMiddleware, cls).from_crawler(crawler, *args, **kwargs)
+
+#     def process_request(self, request, spider):
+#         """Process the request using Selenium WebDriver."""
+#         self.logger.info(f"Fetching page: {request.url}")
+#         self.driver.get(request.url)
+
+#         # Allow some time for the page to load
+#         time.sleep(3)
+
+#         # Log the time taken for loading
+#         self.logger.info(f"Page loaded in 3 seconds: {request.url}")
+
+#         # Get the fully rendered HTML page source from Selenium
+#         content = self.driver.page_source
+
+#         # Log the page content size
+#         self.logger.info(f"Page content size: {len(content)} characters")
+
+#         # Return an HtmlResponse with the content
+#         return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
+
+#     def process_response(self, request, response, spider):
+#         """Return the response without changes."""
+#         return response
+
+#     def process_exception(self, request, exception, spider):
+#         """Handle exceptions in the downloader process."""
+#         pass
+
+#     def close(self):
+#         """Close the Selenium WebDriver session."""
+#         self.logger.info("Closing the Selenium WebDriver session.")
+#         self.driver.quit()
+
+
+
+
+
+# class NpsnewsscrapeSpiderMiddleware:
+#     @classmethod
+#     def from_crawler(cls, crawler):
+#         s = cls()
+#         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
+#         return s
+
+#     def process_spider_input(self, response, spider):
+#         # This method is called for each response going through the spider middleware.
+#         return None
+
+#     def process_spider_output(self, response, result, spider):
+#         # This method handles the output from the spider and needs to return requests or items.
+#         for item in result:
+#             yield item
+
+#     def process_spider_exception(self, response, exception, spider):
+#         # This method can be used to handle exceptions raised in the spider processing.
+#         pass
+
+#     def process_start_requests(self, start_requests, spider):
+#         # This method is for processing start requests for the spider.
+#         for r in start_requests:
+#             yield r
+
+#     def spider_opened(self, spider):
+#         # Logging that the spider has been opened
+#         spider.logger.info("Spider opened: %s" % spider.name)
 
 
 

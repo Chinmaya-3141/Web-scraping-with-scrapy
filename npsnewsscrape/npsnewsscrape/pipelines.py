@@ -38,6 +38,7 @@ class SQLite3Pipeline:
                             ''')
 
             self.connection.commit()
+            logging.info("Database table created successfully.")
         except sqlite3.OperationalError:
             pass
         logging.warning('Spider - Table Created')
@@ -50,6 +51,8 @@ class SQLite3Pipeline:
         
         
     def process_item(self, item, spider):
+        # Log the item you're about to insert
+        logging.info(f"Processing item: {item}")
         
         # Check for duplicacy
         self.c.execute('''
@@ -103,6 +106,8 @@ class SQLite3Pipeline:
 
 
             self.connection.commit()
+        else:
+            logging.info(f"Duplicate item found for {item.get('headline')}. Skipping insertion.")
         return item
 
 # from itemadapter import ItemAdapter
