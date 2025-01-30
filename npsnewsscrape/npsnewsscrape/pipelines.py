@@ -80,6 +80,7 @@ class SQLite3Pipeline:
                             ''')
 
             self.connection.commit()
+            logging.info("Database table created successfully.")
         except sqlite3.OperationalError:
             pass
         logging.warning('Spider - Table Created')
@@ -93,7 +94,14 @@ class SQLite3Pipeline:
         
         
     def process_item(self, item, spider):
+<<<<<<< HEAD
         # Check for duplicacy based on 'headline' and 'article_datetime'
+=======
+        # Log the item you're about to insert
+        logging.info(f"Processing item: {item}")
+        
+        # Check for duplicacy
+>>>>>>> newsedit
         self.c.execute('''
             SELECT COUNT(*) FROM news
             WHERE headline = ? AND article_datetime = ?
@@ -104,6 +112,7 @@ class SQLite3Pipeline:
         
         duplicate_count = self.c.fetchone()[0]
         
+<<<<<<< HEAD
         # If no duplicate exists, insert the new item
         if duplicate_count == 0:
             try:
@@ -144,6 +153,48 @@ class SQLite3Pipeline:
             except sqlite3.Error as e:
                 logging.error(f"Error inserting item: {e}")
         
+=======
+        if duplicate_count == 0:  # If no duplicate exists, insert
+            self.c.execute('''
+                                INSERT INTO news (
+                                    transaction_id, 
+                                    search_term, 
+                                    country_name, 
+                                    country_language, 
+                                    news_source,
+                                    headline,
+                                    description,
+                                    article_datetime,
+                                    source_link,
+                                    ambuja_kawach_count,
+                                    ambuja_cool_walls_count,
+                                    ambuja_compocem_count,
+                                    ambuja_plus_count
+                                ) 
+                                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                            ''', 
+                                (
+                                    item.get('transaction_id'),
+                                    item.get('search_term'),
+                                    item.get('country_name'),
+                                    item.get('country_language'),
+                                    item.get('news_source'),
+                                    item.get('headline'),
+                                    item.get('description'),
+                                    item.get('article_datetime'),
+                                    item.get('source_link'),
+                                    item.get('ambuja_kawach_count', 0),  # Default to 0 if no count is provided
+                                    item.get('ambuja_cool_walls_count', 0),
+                                    item.get('ambuja_compocem_count', 0),
+                                    item.get('ambuja_plus_count', 0)
+                                )
+                        )
+
+
+            self.connection.commit()
+        else:
+            logging.info(f"Duplicate item found for {item.get('headline')}. Skipping insertion.")
+>>>>>>> newsedit
         return item
 
 
