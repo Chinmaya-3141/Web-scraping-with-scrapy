@@ -71,11 +71,13 @@ def generate_decoded_urls(urls):
             print(f"Using an interval time of: {interval_time:.2f} seconds for URL {url}")
             
             # Decode the URL using gnewsdecoder with the generated interval time
-            decoded_url = gnewsdecoder(url, interval=interval_time)
+            decoded_url = gnewsdecoder(url,interval=interval_time)
             if decoded_url.get("status"):
                 yield {"url": url, "decoded_url": decoded_url["decoded_url"]}
+                print(f'\n {decoded_url["decoded_url"]}')
             else:
                 yield {"url": url, "error": decoded_url["message"]}
+                print(f'\n {decoded_url["message"]}')
         except Exception as e:
             yield {"url": url, "error": str(e)}
 
@@ -84,10 +86,11 @@ def main():
     db_path = '/home/chinmaya/Programming/Web-scraping-with-scrapy/npsnewsscrape/news_combined.db'  # Change this to your database file path
     
     # Specify the path for the output JSON file
-    output_json_path = 'Outputs/links.json'
+    output_json_path = 'Outputs/links_2.json'
     
     # Process URLs and immediately write to JSON using generator
     process_urls(db_path, output_json_path)
+    print("Finished running")
 
 if __name__ == "__main__":
     main()

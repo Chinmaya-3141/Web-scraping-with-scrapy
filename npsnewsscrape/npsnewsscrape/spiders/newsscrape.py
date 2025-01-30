@@ -1,5 +1,5 @@
 import scrapy
-import re, uuid, string, time, random
+import re, uuid, string, time, random, logging
 from datetime import datetime
 from googlenewsdecoder import gnewsdecoder
 
@@ -10,42 +10,45 @@ class NewsscrapeSpider(scrapy.Spider):
     # allowed_domains = ["news.google.com"]
     
     # Class variables for brand/product lines
-    brands = ['Ambuja Cements', 'ACC Limited', 'Orient Cement']
+    # brands = ['Ambuja Cements', 'ACC Limited', 'Orient Cement']
+    brands = ['Ambuja Cements']
     count_if_without_ambuja = ['Ambuja Kawach', 'Ambuja Cool Walls', 'Ambuja Compocem']
     count_if_full_term_only = ['Ambuja Plus']
-
+    start_time=0
+    end_time=0
+    total_time=0
     # Use dictionary for language-region mapping with country names and languages in words
     language_region_codes = {
         'en-IN': {'region': 'IN', 'country_name': 'India', 'language': 'English'},
-        'es': {'region': 'ES', 'country_name': 'Spain', 'language': 'Spanish'},
-        'hi': {'region': 'IN', 'country_name': 'India', 'language': 'Hindi'},
-        'fr': {'region': 'FR', 'country_name': 'France', 'language': 'French'},
-        'de': {'region': 'DE', 'country_name': 'Germany', 'language': 'German'},
-        'it': {'region': 'IT', 'country_name': 'Italy', 'language': 'Italian'},
-        'pt': {'region': 'BR', 'country_name': 'Brazil', 'language': 'Portuguese'},
-        'ja': {'region': 'JP', 'country_name': 'Japan', 'language': 'Japanese'},
-        'ko': {'region': 'KR', 'country_name': 'South Korea', 'language': 'Korean'},
-        'zh-CN': {'region': 'CN', 'country_name': 'China', 'language': 'Simplified Chinese'},
-        'zh-TW': {'region': 'TW', 'country_name': 'Taiwan', 'language': 'Traditional Chinese'},
-        'ar': {'region': 'SA', 'country_name': 'Saudi Arabia', 'language': 'Arabic'},
-        'ru': {'region': 'RU', 'country_name': 'Russia', 'language': 'Russian'},
-        'pl': {'region': 'PL', 'country_name': 'Poland', 'language': 'Polish'},
-        'tr': {'region': 'TR', 'country_name': 'Turkey', 'language': 'Turkish'},
-        'nl': {'region': 'NL', 'country_name': 'Netherlands', 'language': 'Dutch'},
-        'sv': {'region': 'SE', 'country_name': 'Sweden', 'language': 'Swedish'},
-        'da': {'region': 'DK', 'country_name': 'Denmark', 'language': 'Danish'},
-        'no': {'region': 'NO', 'country_name': 'Norway', 'language': 'Norwegian'},
-        'fi': {'region': 'FI', 'country_name': 'Finland', 'language': 'Finnish'},
-        'el': {'region': 'GR', 'country_name': 'Greece', 'language': 'Greek'},
-        'cs': {'region': 'CZ', 'country_name': 'Czech Republic', 'language': 'Czech'},
-        'ro': {'region': 'RO', 'country_name': 'Romania', 'language': 'Romanian'},
-        'bg': {'region': 'BG', 'country_name': 'Bulgaria', 'language': 'Bulgarian'},
-        'hu': {'region': 'HU', 'country_name': 'Hungary', 'language': 'Hungarian'},
-        'th': {'region': 'TH', 'country_name': 'Thailand', 'language': 'Thai'},
-        'vi': {'region': 'VN', 'country_name': 'Vietnam', 'language': 'Vietnamese'},
-        'id': {'region': 'ID', 'country_name': 'Indonesia', 'language': 'Indonesian'},
-        'ms': {'region': 'MY', 'country_name': 'Malaysia', 'language': 'Malay'},
-        'tl': {'region': 'PH', 'country_name': 'Philippines', 'language': 'Filipino'}
+        # 'es': {'region': 'ES', 'country_name': 'Spain', 'language': 'Spanish'},
+        # 'hi': {'region': 'IN', 'country_name': 'India', 'language': 'Hindi'},
+        # 'fr': {'region': 'FR', 'country_name': 'France', 'language': 'French'},
+        # 'de': {'region': 'DE', 'country_name': 'Germany', 'language': 'German'},
+        # 'it': {'region': 'IT', 'country_name': 'Italy', 'language': 'Italian'},
+        # 'pt': {'region': 'BR', 'country_name': 'Brazil', 'language': 'Portuguese'},
+        # 'ja': {'region': 'JP', 'country_name': 'Japan', 'language': 'Japanese'},
+        # 'ko': {'region': 'KR', 'country_name': 'South Korea', 'language': 'Korean'},
+        # 'zh-CN': {'region': 'CN', 'country_name': 'China', 'language': 'Simplified Chinese'},
+        # 'zh-TW': {'region': 'TW', 'country_name': 'Taiwan', 'language': 'Traditional Chinese'},
+        # 'ar': {'region': 'SA', 'country_name': 'Saudi Arabia', 'language': 'Arabic'},
+        # 'ru': {'region': 'RU', 'country_name': 'Russia', 'language': 'Russian'},
+        # 'pl': {'region': 'PL', 'country_name': 'Poland', 'language': 'Polish'},
+        # 'tr': {'region': 'TR', 'country_name': 'Turkey', 'language': 'Turkish'},
+        # 'nl': {'region': 'NL', 'country_name': 'Netherlands', 'language': 'Dutch'},
+        # 'sv': {'region': 'SE', 'country_name': 'Sweden', 'language': 'Swedish'},
+        # 'da': {'region': 'DK', 'country_name': 'Denmark', 'language': 'Danish'},
+        # 'no': {'region': 'NO', 'country_name': 'Norway', 'language': 'Norwegian'},
+        # 'fi': {'region': 'FI', 'country_name': 'Finland', 'language': 'Finnish'},
+        # 'el': {'region': 'GR', 'country_name': 'Greece', 'language': 'Greek'},
+        # 'cs': {'region': 'CZ', 'country_name': 'Czech Republic', 'language': 'Czech'},
+        # 'ro': {'region': 'RO', 'country_name': 'Romania', 'language': 'Romanian'},
+        # 'bg': {'region': 'BG', 'country_name': 'Bulgaria', 'language': 'Bulgarian'},
+        # 'hu': {'region': 'HU', 'country_name': 'Hungary', 'language': 'Hungarian'},
+        # 'th': {'region': 'TH', 'country_name': 'Thailand', 'language': 'Thai'},
+        # 'vi': {'region': 'VN', 'country_name': 'Vietnam', 'language': 'Vietnamese'},
+        # 'id': {'region': 'ID', 'country_name': 'Indonesia', 'language': 'Indonesian'},
+        # 'ms': {'region': 'MY', 'country_name': 'Malaysia', 'language': 'Malay'},
+        # 'tl': {'region': 'PH', 'country_name': 'Philippines', 'language': 'Filipino'}
     }
 
 
@@ -79,7 +82,7 @@ class NewsscrapeSpider(scrapy.Spider):
 
     def parse(self, response):
         yield from self.extract_article_data(response)
-
+        
     def extract_article_data(self, response):
         article_boxes = response.xpath(self.article_box_xpath)
         
@@ -149,18 +152,19 @@ class NewsscrapeSpider(scrapy.Spider):
                 href_value = ''
                 
             link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
-            # try:
-            #     decoded_url = gnewsdecoder(link)
+            source_link = link
+            try:
+                decoded_url = gnewsdecoder(link, interval=3)
         
-            #     if decoded_url.get("status"):
-            #         print("Decoded URL:", decoded_url["decoded_url"])
-            #     else:
-            #         print("Error:", decoded_url["message"])
-            # except Exception as e:
-            #     print(f"Error occurred: {e}")
-            
+                if decoded_url.get("status"):
+                    source_link=decoded_url["decoded_url"]
+                else:
+                    print("Error:", decoded_url["message"])
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                
             yield response.follow(
-                                    link,
+                                    source_link,
                                     callback=self.parse_article,
                                     meta={
                                         'transaction_id': transaction_id,
@@ -170,7 +174,7 @@ class NewsscrapeSpider(scrapy.Spider):
                                         'country_language': response.meta['country_language'],
                                         'headline': headline,
                                         'article_datetime': datetime_sql,
-                                        'link': link
+                                        'source_link': source_link,
                                         }
                                     )
 
@@ -230,7 +234,7 @@ class NewsscrapeSpider(scrapy.Spider):
                 'headline': response.meta['headline'],
                 'description': description,
                 'article_datetime': response.meta['article_datetime'],
-                'source_link': response.meta['link'],
+                'source_link': response.meta['source_link'],
                 #'source': domain,  # Extracted domain (website source)
                 **{f"{term.replace(' ', '_').lower()}_count": response.meta['product_match'].get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          
             }

@@ -14,6 +14,7 @@ class SQLite3Pipeline:
     
     # Begin feeding data to pipeline
     def open_spider(self, spider):
+<<<<<<< HEAD
         logging.warning('Spider - Pipeline Opened')
         
         # Ensure the Outputs directory exists
@@ -55,6 +56,34 @@ class SQLite3Pipeline:
                 logging.error(f"Error creating table: {e}")
         else:
             logging.warning('Spider - Table Already Exists')
+=======
+        logging.warning('Spider - Pipeling Opened')
+        self.connection = sqlite3.connect('../Outputs/news.db')
+        self.c = self.connection.cursor()   #cursor object helps execute SQL queries
+        try:
+            self.c.execute('''
+                                CREATE TABLE news(
+                                    transaction_id TEXT PRIMARY KEY,
+                                    search_term TEXT,
+                                    country_name TEXT,
+                                    country_language TEXT,
+                                    news_source TEXT,
+                                    headline TEXT,
+                                    description TEXT,
+                                    article_datetime TEXT,
+                                    source_link TEXT,
+                                    ambuja_kawach_count INTEGER,
+                                    ambuja_cool_walls_count INTEGER,
+                                    ambuja_compocem_count INTEGER,
+                                    ambuja_plus_count INTEGER
+                                )
+                            ''')
+
+            self.connection.commit()
+        except sqlite3.OperationalError:
+            pass
+        logging.warning('Spider - Table Created')
+>>>>>>> newsedit
         
         
     # Closes pipeline once done
