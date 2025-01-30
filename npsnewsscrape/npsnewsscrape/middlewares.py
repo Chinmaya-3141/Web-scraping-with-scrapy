@@ -12,7 +12,7 @@ from selenium import webdriver
 # from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 # from selenium.webdriver.edge.options import Options as EdgeOptions
-import time
+import time, random
 import logging
 
 class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
@@ -20,6 +20,9 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
         # Set up Firefox WebDriver (headless)
         firefox_options = FirefoxOptions()
         firefox_options.add_argument('--headless')  # Run Firefox in headless mode
+        # Set the custom User-Agent in the WebDriver options
+        user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"  # Replace with your desired User-Agent string
+        firefox_options.set_preference("general.useragent.override", user_agent)
         self.driver = webdriver.Firefox(options=firefox_options)
 
         # Set up logging
@@ -42,8 +45,11 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             self.logger.info(f"Fetching dynamic page (Selenium): {request.url}")
             self.driver.get(request.url)
 
-            # Allow some time for the page to load
-            time.sleep(3)
+            # Generate a random wait time between 3 and 4 seconds
+            rand_wait = random.uniform(3, 4)
+        
+            # Wait for the randomly generated time
+            time.sleep(rand_wait)
 
             # Log the time taken for loading
             self.logger.info(f"Page loaded in 3 seconds: {request.url}")
