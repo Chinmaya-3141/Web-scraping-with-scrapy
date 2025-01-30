@@ -46,7 +46,7 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             self.driver.get(request.url)
 
             # Generate a random wait time between 3 and 4 seconds
-            rand_wait = random.uniform(3, 4)
+            rand_wait = random.uniform(2, 4)
         
             # Wait for the randomly generated time
             time.sleep(rand_wait)

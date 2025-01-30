@@ -54,17 +54,38 @@ class SQLite3Pipeline:
         # Log the item you're about to insert
         logging.info(f"Processing item: {item}")
         
-        # Check for duplicacy
-        self.c.execute('''
-                           SELECT COUNT(*) FROM news 
-                           WHERE headline = ? AND article_datetime = ?
-                           ''',
+        # Check if source_link is available
+        source_link = item.get('source_link')
+        
+        # If source_link is available, check for duplicacy based on source_link, country_name, and country_language
+        if source_link:
+            self.c.execute('''
+                               SELECT COUNT(*) FROM news 
+                               WHERE source_link = ? 
+                               AND country_name = ? 
+                               AND country_language = ?
+                            ''', 
                             (
+                                source_link,
+                                item.get('country_name'),
+                                item.get('country_language')
+                            )
+                        )
+        else:
+            # If source_link is not available, check for duplicacy based on news_source, headline, and article_datetime
+            self.c.execute('''
+                               SELECT COUNT(*) FROM news 
+                               WHERE news_source = ? 
+                               AND headline = ? 
+                               AND article_datetime = ?
+                            ''', 
+                            (
+                                item.get('news_source'),
                                 item.get('headline'),
                                 item.get('article_datetime')
                             )
                         )
-        
+
         # Fetches first row of query result as tuple, [0] grabs first element of first row tuple.
         duplicate_count = self.c.fetchone()[0]
         

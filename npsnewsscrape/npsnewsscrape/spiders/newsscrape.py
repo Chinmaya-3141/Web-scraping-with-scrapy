@@ -15,41 +15,39 @@ class NewsscrapeSpider(scrapy.Spider):
     # brands = ['Ambuja Cements']
     count_if_without_ambuja = ['Ambuja Kawach', 'Ambuja Cool Walls', 'Ambuja Compocem']
     count_if_full_term_only = ['Ambuja Plus']
-    # start_time=0
-    # end_time=0
-    # total_time=0
+
     # Use dictionary for language-region mapping with country names and languages in words
     language_region_codes = {
         'en-IN': {'region': 'IN', 'country_name': 'India', 'language': 'English'},
-        # 'es': {'region': 'ES', 'country_name': 'Spain', 'language': 'Spanish'},
-        # 'hi': {'region': 'IN', 'country_name': 'India', 'language': 'Hindi'},
-        # 'fr': {'region': 'FR', 'country_name': 'France', 'language': 'French'},
-        # 'de': {'region': 'DE', 'country_name': 'Germany', 'language': 'German'},
-        # 'it': {'region': 'IT', 'country_name': 'Italy', 'language': 'Italian'},
-        # 'pt': {'region': 'BR', 'country_name': 'Brazil', 'language': 'Portuguese'},
-        # 'ja': {'region': 'JP', 'country_name': 'Japan', 'language': 'Japanese'},
-        # 'ko': {'region': 'KR', 'country_name': 'South Korea', 'language': 'Korean'},
-        # 'zh-CN': {'region': 'CN', 'country_name': 'China', 'language': 'Simplified Chinese'},
-        # 'zh-TW': {'region': 'TW', 'country_name': 'Taiwan', 'language': 'Traditional Chinese'},
-        # 'ar': {'region': 'SA', 'country_name': 'Saudi Arabia', 'language': 'Arabic'},
-        # 'ru': {'region': 'RU', 'country_name': 'Russia', 'language': 'Russian'},
-        # 'pl': {'region': 'PL', 'country_name': 'Poland', 'language': 'Polish'},
-        # 'tr': {'region': 'TR', 'country_name': 'Turkey', 'language': 'Turkish'},
-        # 'nl': {'region': 'NL', 'country_name': 'Netherlands', 'language': 'Dutch'},
-        # 'sv': {'region': 'SE', 'country_name': 'Sweden', 'language': 'Swedish'},
-        # 'da': {'region': 'DK', 'country_name': 'Denmark', 'language': 'Danish'},
-        # 'no': {'region': 'NO', 'country_name': 'Norway', 'language': 'Norwegian'},
-        # 'fi': {'region': 'FI', 'country_name': 'Finland', 'language': 'Finnish'},
-        # 'el': {'region': 'GR', 'country_name': 'Greece', 'language': 'Greek'},
-        # 'cs': {'region': 'CZ', 'country_name': 'Czech Republic', 'language': 'Czech'},
-        # 'ro': {'region': 'RO', 'country_name': 'Romania', 'language': 'Romanian'},
-        # 'bg': {'region': 'BG', 'country_name': 'Bulgaria', 'language': 'Bulgarian'},
-        # 'hu': {'region': 'HU', 'country_name': 'Hungary', 'language': 'Hungarian'},
-        # 'th': {'region': 'TH', 'country_name': 'Thailand', 'language': 'Thai'},
-        # 'vi': {'region': 'VN', 'country_name': 'Vietnam', 'language': 'Vietnamese'},
-        # 'id': {'region': 'ID', 'country_name': 'Indonesia', 'language': 'Indonesian'},
-        # 'ms': {'region': 'MY', 'country_name': 'Malaysia', 'language': 'Malay'},
-        # 'tl': {'region': 'PH', 'country_name': 'Philippines', 'language': 'Filipino'}
+        'es': {'region': 'ES', 'country_name': 'Spain', 'language': 'Spanish'},
+        'hi': {'region': 'IN', 'country_name': 'India', 'language': 'Hindi'},
+        'fr': {'region': 'FR', 'country_name': 'France', 'language': 'French'},
+        'de': {'region': 'DE', 'country_name': 'Germany', 'language': 'German'},
+        'it': {'region': 'IT', 'country_name': 'Italy', 'language': 'Italian'},
+        'pt': {'region': 'BR', 'country_name': 'Brazil', 'language': 'Portuguese'},
+        'ja': {'region': 'JP', 'country_name': 'Japan', 'language': 'Japanese'},
+        'ko': {'region': 'KR', 'country_name': 'South Korea', 'language': 'Korean'},
+        'zh-CN': {'region': 'CN', 'country_name': 'China', 'language': 'Simplified Chinese'},
+        'zh-TW': {'region': 'TW', 'country_name': 'Taiwan', 'language': 'Traditional Chinese'},
+        'ar': {'region': 'SA', 'country_name': 'Saudi Arabia', 'language': 'Arabic'},
+        'ru': {'region': 'RU', 'country_name': 'Russia', 'language': 'Russian'},
+        'pl': {'region': 'PL', 'country_name': 'Poland', 'language': 'Polish'},
+        'tr': {'region': 'TR', 'country_name': 'Turkey', 'language': 'Turkish'},
+        'nl': {'region': 'NL', 'country_name': 'Netherlands', 'language': 'Dutch'},
+        'sv': {'region': 'SE', 'country_name': 'Sweden', 'language': 'Swedish'},
+        'da': {'region': 'DK', 'country_name': 'Denmark', 'language': 'Danish'},
+        'no': {'region': 'NO', 'country_name': 'Norway', 'language': 'Norwegian'},
+        'fi': {'region': 'FI', 'country_name': 'Finland', 'language': 'Finnish'},
+        'el': {'region': 'GR', 'country_name': 'Greece', 'language': 'Greek'},
+        'cs': {'region': 'CZ', 'country_name': 'Czech Republic', 'language': 'Czech'},
+        'ro': {'region': 'RO', 'country_name': 'Romania', 'language': 'Romanian'},
+        'bg': {'region': 'BG', 'country_name': 'Bulgaria', 'language': 'Bulgarian'},
+        'hu': {'region': 'HU', 'country_name': 'Hungary', 'language': 'Hungarian'},
+        'th': {'region': 'TH', 'country_name': 'Thailand', 'language': 'Thai'},
+        'vi': {'region': 'VN', 'country_name': 'Vietnam', 'language': 'Vietnamese'},
+        'id': {'region': 'ID', 'country_name': 'Indonesia', 'language': 'Indonesian'},
+        'ms': {'region': 'MY', 'country_name': 'Malaysia', 'language': 'Malay'},
+        'tl': {'region': 'PH', 'country_name': 'Philippines', 'language': 'Filipino'}
     }
 
 
@@ -107,116 +105,9 @@ class NewsscrapeSpider(scrapy.Spider):
     # def parse(self, response):
     #     yield from self.extract_article_data(response)
 
-    def extract_article_data(self, response):
-        article_boxes = response.xpath(self.article_box_xpath)
-            
-        # Remove punctuation (e.g., .,!,? etc.), convert to lowercase
-        def clean_text(text):
-            return text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
-
-        # Loop over each article box on the page
-        for box in article_boxes:
-            # Generating a unique UUID for the article
-            transaction_id = str(uuid.uuid4())
-            
-            # Get headline
-            headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
-            self.logger.info(f'\n headline:{headline} \n')
-            # Get datetime from the article
-            datetime_str = box.xpath(self.datetime_xpath).get()
-            if datetime_str:
-                try:
-                    dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
-                except ValueError:
-                    dt = None
-            else:
-                dt = None
-            
-            # Format datetime
-            if dt:
-                datetime_sql = dt.strftime("%Y-%m-%d %H:%M:%S")  # Standard SQL format
-            else:
-                datetime_sql = None
-                                   
-            # Clean the headline by removing punctuation, make lowercase
-            clean_headline = clean_text(headline)
-            
-            # Create a dictionary to store product matches with 0 count
-            product_match = {term: 0 for term in self.count_if_without_ambuja + self.count_if_full_term_only}
-            
-            # First pass: Count full terms
-            for term in self.count_if_without_ambuja + self.count_if_full_term_only:
-                clean_term = clean_text(term)
-                
-                # Count the full term occurrences
-                full_term_count = len(re.findall(r'\b' + re.escape(clean_term) + r'\b', clean_headline))
-                
-                if full_term_count > 0:
-                    product_match[term] += full_term_count
-    
-            # Second pass: Count partial terms independently, but not if already counted as full term
-            for term in self.count_if_without_ambuja:
-                clean_term = clean_text(term)
-                
-                # Clean the term without "Ambuja"
-                clean_term_without_ambuja = clean_term.replace('ambuja ', '')
-                
-                # Count the partial term only if it's not already counted as part of the full term
-                if clean_term_without_ambuja in clean_headline:
-                    # Ensure it's not part of the full term already counted
-                    if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_headline):
-                        cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_ambuja) + r'\b', clean_headline))
-                        product_match[term] += cleaned_term_count
-            # Get the article URL
-            href_value = box.xpath(self.href_path).get()
-            if href_value:
-                href_value = href_value.lstrip('.')
-            else:
-                href_value = ''
-            
-            link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
-            source_link = link
-            
-            # Run the gnewsdecoder asynchronously
-            def fetch_gnews_decoder(link):
-                try:
-                    decoded_url = gnewsdecoder(link, interval=1)
-                    if decoded_url.get("status"):
-                        return decoded_url["decoded_url"]
-                    else:
-                        self.logger.error(f"Error: {decoded_url['message']}")
-                        return link
-                except Exception as e:
-                    self.logger.error(f"Error occurred: {e}")
-                    return link
-    
-            # Use deferToThread to avoid blocking the event loop
-            deferred = deferToThread(fetch_gnews_decoder, source_link)
-            
-            # When gnewsdecoder finishes, follow the response with the decoded URL
-            deferred.addCallback(self.handle_decoded_url, transaction_id, headline, product_match, response, datetime_sql)
-    
-    def handle_decoded_url(self, decoded_url, transaction_id, headline, product_match, response, datetime_sql):
-        # This callback method will handle the decoded URL once gnewsdecoder finishes.
-        yield response.follow(
-            decoded_url,
-            callback=self.parse_article,
-            meta={
-                'transaction_id': transaction_id,
-                'search_term': response.meta['search_term'],
-                'product_match': product_match,
-                'country_name': response.meta['country_name'],
-                'country_language': response.meta['country_language'],
-                'headline': headline,
-                'article_datetime': datetime_sql,
-                'source_link': decoded_url,
-            }
-        )
-
-        
     # def extract_article_data(self, response):
     #     article_boxes = response.xpath(self.article_box_xpath)
-        
+            
     #     # Remove punctuation (e.g., .,!,? etc.), convert to lowercase
     #     def clean_text(text):
     #         return text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
@@ -228,7 +119,7 @@ class NewsscrapeSpider(scrapy.Spider):
             
     #         # Get headline
     #         headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
-            
+    #         self.logger.info(f'\n headline:{headline} \n')
     #         # Get datetime from the article
     #         datetime_str = box.xpath(self.datetime_xpath).get()
     #         if datetime_str:
@@ -274,58 +165,120 @@ class NewsscrapeSpider(scrapy.Spider):
     #                 if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_headline):
     #                     cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_ambuja) + r'\b', clean_headline))
     #                     product_match[term] += cleaned_term_count
- 
-    #         # Get article URL
+    #         # Get the article URL
     #         href_value = box.xpath(self.href_path).get()
     #         if href_value:
     #             href_value = href_value.lstrip('.')
     #         else:
     #             href_value = ''
-                
+            
     #         link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
     #         source_link = link
-    #         try:
-    #             decoded_url = gnewsdecoder(link, interval=3)
+            
+    #         # Run the gnewsdecoder asynchronously
+    #         def fetch_gnews_decoder(link):
+    #             try:
+    #                 decoded_url = gnewsdecoder(link, interval=1)
+    #                 if decoded_url.get("status"):
+    #                     return decoded_url["decoded_url"]
+    #                 else:
+    #                     self.logger.error(f"Error: {decoded_url['message']}")
+    #                     return link
+    #             except Exception as e:
+    #                 self.logger.error(f"Error occurred: {e}")
+    #                 return link
+    
+    #         # Use deferToThread to avoid blocking the event loop
+    #         deferred = deferToThread(fetch_gnews_decoder, source_link)
+            
+    #         # When gnewsdecoder finishes, follow the response with the decoded URL
+    #         deferred.addCallback(self.handle_decoded_url, transaction_id, headline, product_match, response, datetime_sql)
+    
+    # def handle_decoded_url(self, decoded_url, transaction_id, headline, product_match, response, datetime_sql):
+    #     # This callback method will handle the decoded URL once gnewsdecoder finishes.
+    #     yield response.follow(
+    #         decoded_url,
+    #         callback=self.parse_article,
+    #         meta={
+    #             'transaction_id': transaction_id,
+    #             'search_term': response.meta['search_term'],
+    #             'product_match': product_match,
+    #             'country_name': response.meta['country_name'],
+    #             'country_language': response.meta['country_language'],
+    #             'headline': headline,
+    #             'article_datetime': datetime_sql,
+    #             'source_link': decoded_url,
+    #         }
+    #     )
+
         
-    #             if decoded_url.get("status"):
-    #                 source_link=decoded_url["decoded_url"]
-    #             else:
-    #                 print("Error:", decoded_url["message"])
-    #         except Exception as e:
-    #             print(f"Error occurred: {e}")
+    def extract_article_data(self, response):
+        article_boxes = response.xpath(self.article_box_xpath)
+
+        # Loop over each article box on the page
+        for box in article_boxes:
+            # Generating a unique UUID for the article
+            transaction_id = str(uuid.uuid4())
+            
+            # Get headline
+            headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
+            
+            # Get datetime from the article
+            datetime_str = box.xpath(self.datetime_xpath).get()
+            if datetime_str:
+                try:
+                    dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
+                except ValueError:
+                    dt = None
+            else:
+                dt = None
+            
+            # Format datetime
+            if dt:
+                datetime_sql = dt.strftime("%Y-%m-%d %H:%M:%S")  # Standard SQL format
+            else:
+                datetime_sql = None
+                                  
+ 
+            # Get article URL
+            href_value = box.xpath(self.href_path).get()
+            if href_value:
+                href_value = href_value.lstrip('.')
+            else:
+                href_value = ''
                 
-    #         yield response.follow(
-    #                                 source_link,
-    #                                 callback=self.parse_article,
-    #                                 meta={
-    #                                     'transaction_id': transaction_id,
-    #                                     'search_term': response.meta['search_term'],
-    #                                     'product_match': product_match,
-    #                                     'country_name': response.meta['country_name'],
-    #                                     'country_language': response.meta['country_language'],
-    #                                     'headline': headline,
-    #                                     'article_datetime': datetime_sql,
-    #                                     'source_link': source_link,
-    #                                     }
-    #                                 )
+            link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
+            source_link = link
+            try:
+                decoded_url = gnewsdecoder(link, interval=1)
+        
+                if decoded_url.get("status"):
+                    source_link=decoded_url["decoded_url"]
+                else:
+                    print("Error:", decoded_url["message"])
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                
+            yield response.follow(
+                                    source_link,
+                                    callback=self.parse_article,
+                                    meta={
+                                        'transaction_id': transaction_id,
+                                        'search_term': response.meta['search_term'],
+                                        'country_name': response.meta['country_name'],
+                                        'country_language': response.meta['country_language'],
+                                        'headline': headline,
+                                        'article_datetime': datetime_sql,
+                                        'source_link': source_link,
+                                        }
+                                    )
 
     def parse_article(self, response):
         # Get the full URL of the page
         full_url = response.url
         self.logger.info(f"visiting url: {full_url}")
-        # Attempt to get source name
-        try:
-            source = response.xpath("//meta[@property='og:site_name']/@content").get()
-            if not source:  # If no content is found, handle it
-                raise ValueError("No content found for og:site_name")
-        except Exception:
-            try:
-                source = response.xpath("//meta[@name='og:site_name']/@content").get()
-                if not source:
-                    raise ValueError("No content found for og:site_name")
-            except Exception:
-                source = "Not Available"  # Default to "Not Available" if both fail
-        
+
+        # Remove punctuation (e.g., .,!,? etc.), convert to lowercase
         try:
             description = response.xpath("//meta[@property='og:description']/@content").get()
             if not description:
@@ -337,6 +290,64 @@ class NewsscrapeSpider(scrapy.Spider):
                     raise ValueError("No content found for og:description")
             except Exception:
                 description = "Not Available"
+        
+        def clean_text(text1, text2):
+            # Combine the two input strings with a space
+            combined_text = f"{text1} {text2}"
+            
+            # Clean the combined text: remove punctuation, convert to lowercase, and strip spaces
+            return combined_text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
+        
+        # Join headline and description, clean string by removing punctuation, make lowercase
+        clean_search_string = clean_text(response.meta['headline'],description)
+        
+        # Create a dictionary to store product matches with 0 count
+        product_match = {term: 0 for term in self.count_if_without_ambuja + self.count_if_full_term_only}
+        
+        # First pass: Count full terms
+        for term in self.count_if_without_ambuja + self.count_if_full_term_only:
+            clean_term = clean_text(term)
+            
+            # Count the full term occurrences
+            full_term_count = len(re.findall(r'\b' + re.escape(clean_term) + r'\b', clean_search_string))
+            
+            if full_term_count > 0:
+                product_match[term] += full_term_count
+        # Second pass: Count partial terms independently, but not if already counted as full term
+        for term in self.count_if_without_ambuja:
+            clean_term = clean_text(term)
+            
+            # Clean the term without "Ambuja"
+            clean_term_without_ambuja = clean_term.replace('ambuja ', '')
+            
+            # Count the partial term only if it's not already counted as part of the full term
+            if clean_term_without_ambuja in clean_search_string:
+                # Ensure it's not part of the full term already counted
+                if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_search_string):
+                    cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_ambuja) + r'\b', clean_search_string))
+                    product_match[term] += cleaned_term_count
+
+        # Attempt to get source name                  
+        try:
+            source = response.xpath("//meta[@property='og:site_name']/@content").get()
+            if not source:  # If no content is found, handle it
+                raise ValueError("No content found for og:site_name")
+        except Exception:
+            try:
+                source = response.xpath("//meta[@name='og:site_name']/@content").get()
+                if not source:
+                    raise ValueError("No content found for og:site_name")
+            except Exception:
+                try:
+                    pattern = r"https://(?:[a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)(?=\.[a-zA-Z]+(?:\/|$))"
+                    match = re.search(pattern, response.meta['source_link'])
+                    if match:
+                        print(match.group(1))  # This will print the domain name
+                except Exception:
+                    source = "Not Available"  # Default to "Not Available" if both fail
+                    
+
+        
         
         # Attempt to get source link
         try:
@@ -367,7 +378,7 @@ class NewsscrapeSpider(scrapy.Spider):
                 'article_datetime': response.meta['article_datetime'],
                 'source_link': response.meta['source_link'],
                 #'source': domain,  # Extracted domain (website source)
-                **{f"{term.replace(' ', '_').lower()}_count": response.meta['product_match'].get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          
+                **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          
             }
         
         self.logger.info(f"Yielding item: {item}")
