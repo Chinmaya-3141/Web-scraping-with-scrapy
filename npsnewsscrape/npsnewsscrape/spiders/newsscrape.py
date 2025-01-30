@@ -291,15 +291,17 @@ class NewsscrapeSpider(scrapy.Spider):
             except Exception:
                 description = "Not Available"
         
-        def clean_text(text1, text2):
+        def clean_join_text(text1, text2):
             # Combine the two input strings with a space
             combined_text = f"{text1} {text2}"
             
             # Clean the combined text: remove punctuation, convert to lowercase, and strip spaces
             return combined_text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
-        
+        def clean_text(text):
+            return text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
+
         # Join headline and description, clean string by removing punctuation, make lowercase
-        clean_search_string = clean_text(response.meta['headline'],description)
+        clean_search_string = clean_join_text(response.meta['headline'],description)
         
         # Create a dictionary to store product matches with 0 count
         product_match = {term: 0 for term in self.count_if_without_ambuja + self.count_if_full_term_only}

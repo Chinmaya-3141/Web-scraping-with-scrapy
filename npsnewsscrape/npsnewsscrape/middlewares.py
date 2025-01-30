@@ -15,6 +15,10 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 import time, random
 import logging
 
+
+# https://github.com/ByteXenon/undetected_geckodriver
+
+
 class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
     def __init__(self, *args, **kwargs):
         # Set up Firefox WebDriver (headless)
