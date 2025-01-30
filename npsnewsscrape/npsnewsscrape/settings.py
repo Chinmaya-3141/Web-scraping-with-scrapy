@@ -114,11 +114,8 @@ FEED_EXPORT_ENCODING = "utf-8"
 FEED_FORMAT = 'json'
 
 # Set the feed URI to specify the output file (it can be a path to your desired location)
-<<<<<<< HEAD
-FEED_URI = '../Outputs/news.json'  
-=======
+
 FEED_URI = '../Outputs/news.json'
->>>>>>> newsedit
 
 RETRY_ENABLED = True
 RETRY_TIMES = 3  # Number of retries

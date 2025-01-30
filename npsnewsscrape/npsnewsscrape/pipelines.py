@@ -14,7 +14,6 @@ class SQLite3Pipeline:
     
     # Begin feeding data to pipeline
     def open_spider(self, spider):
-<<<<<<< HEAD
         logging.warning('Spider - Pipeline Opened')
         
         # Ensure the Outputs directory exists
@@ -56,35 +55,6 @@ class SQLite3Pipeline:
                 logging.error(f"Error creating table: {e}")
         else:
             logging.warning('Spider - Table Already Exists')
-=======
-        logging.warning('Spider - Pipeling Opened')
-        self.connection = sqlite3.connect('../Outputs/news.db')
-        self.c = self.connection.cursor()   #cursor object helps execute SQL queries
-        try:
-            self.c.execute('''
-                                CREATE TABLE news(
-                                    transaction_id TEXT PRIMARY KEY,
-                                    search_term TEXT,
-                                    country_name TEXT,
-                                    country_language TEXT,
-                                    news_source TEXT,
-                                    headline TEXT,
-                                    description TEXT,
-                                    article_datetime TEXT,
-                                    source_link TEXT,
-                                    ambuja_kawach_count INTEGER,
-                                    ambuja_cool_walls_count INTEGER,
-                                    ambuja_compocem_count INTEGER,
-                                    ambuja_plus_count INTEGER
-                                )
-                            ''')
-
-            self.connection.commit()
-            logging.info("Database table created successfully.")
-        except sqlite3.OperationalError:
-            pass
-        logging.warning('Spider - Table Created')
->>>>>>> newsedit
         
         
     # Closes pipeline once done
@@ -94,66 +64,40 @@ class SQLite3Pipeline:
         
         
     def process_item(self, item, spider):
-<<<<<<< HEAD
-        # Check for duplicacy based on 'headline' and 'article_datetime'
-=======
-        # Log the item you're about to insert
-        logging.info(f"Processing item: {item}")
+        # Check if source_link is available
+        source_link = item.get('source_link')
         
-        # Check for duplicacy
->>>>>>> newsedit
-        self.c.execute('''
-            SELECT COUNT(*) FROM news
-            WHERE headline = ? AND article_datetime = ?
-        ''', (
-            item.get('headline'),
-            item.get('article_datetime')
-        ))
-        
+        # If source_link is available, check for duplicacy based on source_link, country_name, and country_language
+        if source_link:
+            self.c.execute('''
+                               SELECT COUNT(*) FROM news 
+                               WHERE source_link = ? 
+                               AND country_name = ? 
+                               AND country_language = ?
+                            ''', 
+                            (
+                                source_link,
+                                item.get('country_name'),
+                                item.get('country_language')
+                            )
+                        )
+        else:
+            # If source_link is not available, check for duplicacy based on news_source, headline, and article_datetime
+            self.c.execute('''
+                               SELECT COUNT(*) FROM news 
+                               WHERE news_source = ? 
+                               AND headline = ? 
+                               AND article_datetime = ?
+                            ''', 
+                            (
+                                item.get('news_source'),
+                                item.get('headline'),
+                                item.get('article_datetime')
+                            )
+                        )
+
+        # Fetches first row of query result as tuple, [0] grabs first element of first row tuple
         duplicate_count = self.c.fetchone()[0]
-        
-<<<<<<< HEAD
-        # If no duplicate exists, insert the new item
-        if duplicate_count == 0:
-            try:
-                self.c.execute('''
-                    INSERT INTO news (
-                        transaction_id,
-                        search_term,
-                        country_name,
-                        country_language,
-                        news_source,
-                        headline,
-                        description,
-                        article_datetime,
-                        source_link,
-                        ambuja_kawach_count,
-                        ambuja_cool_walls_count,
-                        ambuja_compocem_count,
-                        ambuja_plus_count
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    item.get('transaction_id'),
-                    item.get('search_term'),
-                    item.get('country_name'),
-                    item.get('country_language'),
-                    item.get('news_source'),
-                    item.get('headline'),
-                    item.get('description'),
-                    item.get('article_datetime'),
-                    item.get('source_link'),
-                    item.get('ambuja_kawach_count', 0),  # Default to 0 if not available
-                    item.get('ambuja_cool_walls_count', 0),
-                    item.get('ambuja_compocem_count', 0),
-                    item.get('ambuja_plus_count', 0)
-                ))
-                self.connection.commit()
-                logging.warning(f"Inserted new article: {item.get('headline')}")
-            except sqlite3.Error as e:
-                logging.error(f"Error inserting item: {e}")
-        
-=======
         if duplicate_count == 0:  # If no duplicate exists, insert
             self.c.execute('''
                                 INSERT INTO news (
@@ -194,7 +138,6 @@ class SQLite3Pipeline:
             self.connection.commit()
         else:
             logging.info(f"Duplicate item found for {item.get('headline')}. Skipping insertion.")
->>>>>>> newsedit
         return item
 
 
