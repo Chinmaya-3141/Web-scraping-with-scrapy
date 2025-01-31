@@ -68,7 +68,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,  # Retry middleware
     'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware': 543,  # Selenium middleware
 }
-SELENIUM_DRIVER = 'firefox'
+# SELENIUM_DRIVER = 'firefox'
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

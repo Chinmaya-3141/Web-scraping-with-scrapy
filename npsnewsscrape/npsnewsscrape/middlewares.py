@@ -5,19 +5,24 @@
 
 from scrapy import signals
 from itemadapter import is_item, ItemAdapter
-from scrapy.http import HtmlResponse
-# from scrapy.middleware import BaseMiddleware  # This is the correct base class
-from scrapy.downloadermiddlewares.retry import RetryMiddleware  # We can inherit from this
-from selenium import webdriver
-# from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-# from selenium.webdriver.edge.options import Options as EdgeOptions
 import time, random
 import logging
+from scrapy.http import HtmlResponse
+from scrapy.downloadermiddlewares.retry import RetryMiddleware  # We can inherit from this
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+
+
+# from selenium.webdriver.chrome.options import Options as ChromeOptions
+# from selenium.webdriver.edge.options import Options as EdgeOptions
+# from undetected_geckodriver import Firefox
+# from undetected_geckodriver import Firefox, Options
+
 
 
 # https://github.com/ByteXenon/undetected_geckodriver
-
+# https://github.com/nabinkhadka/rotating-free-proxies
+# https://pypi.org/project/rotating-free-proxies/
 
 class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
     def __init__(self, *args, **kwargs):
@@ -25,8 +30,72 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
         firefox_options = FirefoxOptions()
         firefox_options.add_argument('--headless')  # Run Firefox in headless mode
         # Set the custom User-Agent in the WebDriver options
-        user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"  # Replace with your desired User-Agent string
+        # Rotating User-Agent List
+        # user_agents = [
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
+        #         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36",
+        #         "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0",
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
+        #     ]
+        # List of user agents paired with mobile/desktop info
+        
+        user_agents = [
+            ("Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0", False),  # Desktop
+            ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
+            ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36", False),  # Desktop
+            ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36", False),  # Desktop
+            ("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0", False),  # Desktop
+            ("Mozilla/5.0 (Linux; Android 10; Pixel 4 XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36", True),  # Mobile
+            ("Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/537.36", True),  # Mobile
+            ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0", False),  # Desktop
+            ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0", False),  # Desktop
+            ("Mozilla/5.0 (X11; Linux x86_64; rv:79.0) Gecko/20100101 Firefox/79.0", False),  # Desktop
+            ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
+        ]
+        
+        # Randomly select a user agent and its associated mobile/desktop flag
+        user_agent, is_mobile = random.choice(user_agents)
+        
+        # Apply the selected user-agent to Firefox options
         firefox_options.set_preference("general.useragent.override", user_agent)
+        logging.info(f"Used user-agent: {user_agent}")
+        # Define common resolutions for desktop and mobile
+        desktop_resolutions = [
+            (1366, 768),  # Common laptop size
+            (1920, 1080), # Full HD
+            (1280, 800),  # Common laptop size
+            (1440, 900)   # Another common laptop size
+        ]
+        
+        mobile_resolutions = [
+            (375, 667),  # iPhone 6 dimensions (375x667)
+            (360, 640),  # Typical Android screen size
+            (375, 812),  # iPhone X dimensions (375x812)
+            (414, 896)   # iPhone 11 dimensions (414x896)
+        ]
+        
+        # Choose the appropriate resolution based on the user-agent type (mobile or desktop)
+        if is_mobile:
+            selected_resolution = random.choice(mobile_resolutions)
+            # Enable touch events for mobile-like resolutions
+            firefox_options.set_preference("dom.w3c_touch_events.enabled", 1)
+            logging.info(f"touchscreen: {is_mobile}")
+        else:
+            selected_resolution = random.choice(desktop_resolutions)
+            # Disable touch events for desktop-like resolutions
+            firefox_options.set_preference("dom.w3c_touch_events.enabled", 0)
+            logging.info(f"touchscreen: {is_mobile}")
+
+        
+        # Set the selected window size
+        window_width, window_height = selected_resolution
+        firefox_options.add_argument(f"--window-size={window_width},{window_height}")
+        logging.info(f"Used resolution: {selected_resolution}")
+
+
+        # user_agent = random.choice(user_agents)  # Randomly select a User-Agent from the list
+        # firefox_options.set_preference("general.useragent.override", user_agent)
         self.driver = webdriver.Firefox(options=firefox_options)
 
         # Set up logging
@@ -50,7 +119,7 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             self.driver.get(request.url)
 
             # Generate a random wait time between 2 and 4 seconds
-            rand_wait = random.uniform(2, 4)
+            rand_wait = random.uniform(3,6)
         
             # Wait for the randomly generated time
             time.sleep(rand_wait)
@@ -60,10 +129,24 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
 
             # Get the fully rendered HTML page source from Selenium
             content = self.driver.page_source
+            sample=random.sample(range(1,12),4)
+            if(4 in sample):
+                scroll_height = random.randint(100, 300)
+                self.driver.execute_script(f"window.scrollTo(0, {scroll_height});")
+                logging.info("Scrolled")
+                # Wait for the randomly generated time
+                time.sleep(1)  
 
             # Log the page content size
             self.logger.info(f"Page content size: {len(content)} characters")
-
+            # Generate a random wait time between 2 and 4 seconds
+            sample=random.sample(range(1,20),7)
+            if(4 in sample):
+                rand_wait_2 = random.uniform(1,3)
+                logging.info("Extra wait")
+                # Wait for the randomly generated time
+                time.sleep(rand_wait_2)         
+            
             # Return an HtmlResponse with the content
             return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
 
@@ -111,181 +194,6 @@ class NpsnewsscrapeSpiderMiddleware:
     def spider_opened(self, spider):
         # Logging that the spider has been opened
         spider.logger.info("Spider opened: %s" % spider.name)
-
-
-
-
-# from scrapy import signals
-
-# # useful for handling different item types with a single interface
-# from itemadapter import is_item, ItemAdapter
-# from scrapy.http import HtmlResponse
-# # from scrapy.middleware import BaseMiddleware  # This is the correct base class
-# from scrapy.downloadermiddlewares.retry import RetryMiddleware  # We can inherit from this
-# from selenium import webdriver
-# # from selenium.webdriver.chrome.options import Options as ChromeOptions
-# from selenium.webdriver.firefox.options import Options as FirefoxOptions
-# # from selenium.webdriver.edge.options import Options as EdgeOptions
-# import time
-# import logging
-
-# class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
-#     def __init__(self, *args, **kwargs):
-#         # Set up Firefox WebDriver (headless)
-#         firefox_options = FirefoxOptions()
-#         firefox_options.add_argument('--headless')  # Run Firefox in headless mode
-#         self.driver = webdriver.Firefox(options=firefox_options)
-
-#         # Set up logging
-#         logging.basicConfig(level=logging.INFO)
-#         self.logger = logging.getLogger(__name__)
-
-#         # Ensure the RetryMiddleware is properly initialized
-#         super().__init__(*args, **kwargs)
-
-#     @classmethod
-#     def from_crawler(cls, crawler, *args, **kwargs):
-#         """This method is used to initialize the middleware."""
-#         # Call the parent class's from_crawler to make sure retry settings are applied
-#         return super(NpsnewsscrapeDownloaderMiddleware, cls).from_crawler(crawler, *args, **kwargs)
-
-#     def process_request(self, request, spider):
-#         """Process the request using Selenium WebDriver."""
-#         self.logger.info(f"Fetching page: {request.url}")
-#         self.driver.get(request.url)
-
-#         # Allow some time for the page to load
-#         time.sleep(3)
-
-#         # Log the time taken for loading
-#         self.logger.info(f"Page loaded in 3 seconds: {request.url}")
-
-#         # Get the fully rendered HTML page source from Selenium
-#         content = self.driver.page_source
-
-#         # Log the page content size
-#         self.logger.info(f"Page content size: {len(content)} characters")
-
-#         # Return an HtmlResponse with the content
-#         return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
-
-#     def process_response(self, request, response, spider):
-#         """Return the response without changes."""
-#         return response
-
-#     def process_exception(self, request, exception, spider):
-#         """Handle exceptions in the downloader process."""
-#         pass
-
-#     def close(self):
-#         """Close the Selenium WebDriver session."""
-#         self.logger.info("Closing the Selenium WebDriver session.")
-#         self.driver.quit()
-
-
-
-
-
-# class NpsnewsscrapeSpiderMiddleware:
-#     @classmethod
-#     def from_crawler(cls, crawler):
-#         s = cls()
-#         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-#         return s
-
-#     def process_spider_input(self, response, spider):
-#         # This method is called for each response going through the spider middleware.
-#         return None
-
-#     def process_spider_output(self, response, result, spider):
-#         # This method handles the output from the spider and needs to return requests or items.
-#         for item in result:
-#             yield item
-
-#     def process_spider_exception(self, response, exception, spider):
-#         # This method can be used to handle exceptions raised in the spider processing.
-#         pass
-
-#     def process_start_requests(self, start_requests, spider):
-#         # This method is for processing start requests for the spider.
-#         for r in start_requests:
-#             yield r
-
-#     def spider_opened(self, spider):
-#         # Logging that the spider has been opened
-#         spider.logger.info("Spider opened: %s" % spider.name)
-
-
-
-
-
-
-# class SeleniumMiddleware(BaseMiddleware):
-#     def __init__(self, driver_type='firefox'):
-#         """
-#         Initialize Selenium WebDriver based on the selected driver type.
-#         Default is 'firefox'. You can set 'chrome' or 'edge' to use those drivers.
-#         """
-#         self.driver_type = driver_type.lower()
-
-#         if self.driver_type == 'chrome':
-#             chrome_options = ChromeOptions()
-#             chrome_options.add_argument('--headless')
-#             chrome_options.add_argument('--disable-gpu')
-#             chrome_options.add_argument('--no-sandbox')
-#             self.driver = webdriver.Chrome(options=chrome_options)
-#         elif self.driver_type == 'firefox':
-#             firefox_options = FirefoxOptions()
-#             firefox_options.add_argument('--headless')
-#             self.driver = webdriver.Firefox(options=firefox_options)
-#         elif self.driver_type == 'edge':
-#             edge_options = EdgeOptions()
-#             edge_options.add_argument('--headless')
-#             self.driver = webdriver.Edge(options=edge_options)
-#         else:
-#             raise ValueError("Unsupported driver type. Use 'chrome', 'firefox', or 'edge'.")
-
-#         # Set up logging
-#         logging.basicConfig(level=logging.INFO)
-#         self.logger = logging.getLogger(__name__)
-
-#     @classmethod
-#     def from_crawler(cls, crawler, *args, **kwargs):
-#         """Initialize the middleware with a driver type from Scrapy settings."""
-#         driver_type = crawler.settings.get('SELENIUM_DRIVER', 'firefox')  # Default to Firefox
-#         middleware = super(SeleniumMiddleware, cls).from_crawler(crawler, *args, **kwargs)
-#         middleware.driver_type = driver_type
-#         return middleware
-
-#     def process_request(self, request, spider):
-#         """Process the request using the selected Selenium WebDriver."""
-#         self.logger.info(f"Fetching page: {request.url}")
-
-#         self.driver.get(request.url)
-
-#         # Sleep for 3 seconds to allow the page to fully load (static wait)
-#         time.sleep(3)
-
-#         # Log the time taken for loading
-#         self.logger.info(f"Page loaded in 3 seconds: {request.url}")
-
-#         # Get the fully rendered HTML page source from Selenium
-#         content = self.driver.page_source
-        
-#         # Log the page content length (just an example of logging some useful data)
-#         self.logger.info(f"Page content size: {len(content)} characters")
-
-#         # Return an HtmlResponse with the content
-#         return HtmlResponse(request.url, body=content, encoding='utf-8', request=request)
-
-#     def process_response(self, request, response, spider):
-#         """Not used here, simply pass the response."""
-#         return response
-
-#     def close(self):
-#         """Close the Selenium WebDriver session."""
-#         self.logger.info("Closing the Selenium WebDriver session.")
-#         self.driver.quit()
 
 
 # class NpsnewsscrapeSpiderMiddleware:

@@ -14,7 +14,10 @@ class NewsscrapeSpider(scrapy.Spider):
     brands = ['Ambuja Cements', 'ACC Limited', 'Orient Cement']
     # brands = ['Ambuja Cements']
     count_if_without_ambuja = ['Ambuja Kawach', 'Ambuja Cool Walls', 'Ambuja Compocem']
+    # count_if_without_ambuja = ['Ambuja Kawach']
     count_if_full_term_only = ['Ambuja Plus']
+    # count_if_full_term_only = []
+
 
     # Use dictionary for language-region mapping with country names and languages in words
     language_region_codes = {
@@ -78,138 +81,6 @@ class NewsscrapeSpider(scrapy.Spider):
                         'selenium': True,  # Set this to True for JavaScript-rendered pages
                     }
                 )
-
-
-    # def start_requests(self):
-    #     # Loop through each brand and product
-    #     for term in self.brands + self.count_if_without_ambuja + self.count_if_full_term_only:
-    #         search_term = term.replace(" ", "+")  # Format the term for URL
-            
-    #         # Loop through the language-region mapping to create search URLs
-    #         for language, data in self.language_region_codes.items():
-    #             search_url = f"https://news.google.com/search?q={search_term}&hl={language}&gl={data['region']}"
-                
-    #             yield scrapy.Request(
-    #                 url=search_url,
-    #                 callback=self.parse,
-    #                 meta={
-    #                     'search_term': term,
-    #                     'language': language,
-    #                     'region': data['region'],
-    #                     'country_name': data['country_name'],
-    #                     'country_language': data['language']
-    #                 }
-    #             )
-                
-
-    # def parse(self, response):
-    #     yield from self.extract_article_data(response)
-
-    # def extract_article_data(self, response):
-    #     article_boxes = response.xpath(self.article_box_xpath)
-            
-    #     # Remove punctuation (e.g., .,!,? etc.), convert to lowercase
-    #     def clean_text(text):
-    #         return text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
-
-    #     # Loop over each article box on the page
-    #     for box in article_boxes:
-    #         # Generating a unique UUID for the article
-    #         transaction_id = str(uuid.uuid4())
-            
-    #         # Get headline
-    #         headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
-    #         self.logger.info(f'\n headline:{headline} \n')
-    #         # Get datetime from the article
-    #         datetime_str = box.xpath(self.datetime_xpath).get()
-    #         if datetime_str:
-    #             try:
-    #                 dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
-    #             except ValueError:
-    #                 dt = None
-    #         else:
-    #             dt = None
-            
-    #         # Format datetime
-    #         if dt:
-    #             datetime_sql = dt.strftime("%Y-%m-%d %H:%M:%S")  # Standard SQL format
-    #         else:
-    #             datetime_sql = None
-                                   
-    #         # Clean the headline by removing punctuation, make lowercase
-    #         clean_headline = clean_text(headline)
-            
-    #         # Create a dictionary to store product matches with 0 count
-    #         product_match = {term: 0 for term in self.count_if_without_ambuja + self.count_if_full_term_only}
-            
-    #         # First pass: Count full terms
-    #         for term in self.count_if_without_ambuja + self.count_if_full_term_only:
-    #             clean_term = clean_text(term)
-                
-    #             # Count the full term occurrences
-    #             full_term_count = len(re.findall(r'\b' + re.escape(clean_term) + r'\b', clean_headline))
-                
-    #             if full_term_count > 0:
-    #                 product_match[term] += full_term_count
-    
-    #         # Second pass: Count partial terms independently, but not if already counted as full term
-    #         for term in self.count_if_without_ambuja:
-    #             clean_term = clean_text(term)
-                
-    #             # Clean the term without "Ambuja"
-    #             clean_term_without_ambuja = clean_term.replace('ambuja ', '')
-                
-    #             # Count the partial term only if it's not already counted as part of the full term
-    #             if clean_term_without_ambuja in clean_headline:
-    #                 # Ensure it's not part of the full term already counted
-    #                 if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_headline):
-    #                     cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_ambuja) + r'\b', clean_headline))
-    #                     product_match[term] += cleaned_term_count
-    #         # Get the article URL
-    #         href_value = box.xpath(self.href_path).get()
-    #         if href_value:
-    #             href_value = href_value.lstrip('.')
-    #         else:
-    #             href_value = ''
-            
-    #         link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
-    #         source_link = link
-            
-    #         # Run the gnewsdecoder asynchronously
-    #         def fetch_gnews_decoder(link):
-    #             try:
-    #                 decoded_url = gnewsdecoder(link, interval=1)
-    #                 if decoded_url.get("status"):
-    #                     return decoded_url["decoded_url"]
-    #                 else:
-    #                     self.logger.error(f"Error: {decoded_url['message']}")
-    #                     return link
-    #             except Exception as e:
-    #                 self.logger.error(f"Error occurred: {e}")
-    #                 return link
-    
-    #         # Use deferToThread to avoid blocking the event loop
-    #         deferred = deferToThread(fetch_gnews_decoder, source_link)
-            
-    #         # When gnewsdecoder finishes, follow the response with the decoded URL
-    #         deferred.addCallback(self.handle_decoded_url, transaction_id, headline, product_match, response, datetime_sql)
-    
-    # def handle_decoded_url(self, decoded_url, transaction_id, headline, product_match, response, datetime_sql):
-    #     # This callback method will handle the decoded URL once gnewsdecoder finishes.
-    #     yield response.follow(
-    #         decoded_url,
-    #         callback=self.parse_article,
-    #         meta={
-    #             'transaction_id': transaction_id,
-    #             'search_term': response.meta['search_term'],
-    #             'product_match': product_match,
-    #             'country_name': response.meta['country_name'],
-    #             'country_language': response.meta['country_language'],
-    #             'headline': headline,
-    #             'article_datetime': datetime_sql,
-    #             'source_link': decoded_url,
-    #         }
-    #     )
 
         
     def extract_article_data(self, response):
@@ -348,25 +219,6 @@ class NewsscrapeSpider(scrapy.Spider):
                 except Exception:
                     source = "Not Available"  # Default to "Not Available" if both fail
         
-        # Attempt to get source link
-        # try:
-        #     source_url = response.xpath("//meta[@property='og:url']/@content").get()
-        #     if not source_url:
-        #         raise ValueError("No content found for og:url")
-        # except Exception:
-        #     try:
-        #         source_url = response.xpath("//meta[@name='og:url']/@content").get()
-        #         if not source_url:
-        #             raise ValueError("No content found for og:url")
-        #     except Exception:
-        #         source_url = full_url  # Fallback to the full URL if both XPaths fail
-     
-        # Use regex to extract the domain (text after https:// and before the first /)
-        # match = re.search(r'https?://([^/]+)/', full_url)
-        # domain = match.group(1) if match else "unknown"
-    
-        # Prepare the final dictionary to return (this is the final yield)
-        
         item =  {
                 'transaction_id': response.meta['transaction_id'],
                 'article_datetime': response.meta['article_datetime'],
@@ -483,17 +335,3 @@ class NewsscrapeSpider(scrapy.Spider):
 #     }
 # end
 # """
-
-# # Make the request with necessary metadata
-# yield SplashRequest(
-#     search_url,
-#     callback=self.parse,
-#     args={'lua_source': scroll_script},
-#     meta={
-#         'search_term': term,
-#         'language': language,
-#         'region': data['region'],
-#         'country_name': data['country_name'],
-#         'country_language': data['language']
-#     }
-# )
