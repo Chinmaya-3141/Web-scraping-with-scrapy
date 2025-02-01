@@ -1,58 +1,35 @@
 import scrapy
-import re, uuid, string
+import re, uuid, string, os, json, logging
 from datetime import datetime
 from googlenewsdecoder import gnewsdecoder
-# from twisted.internet.threads import deferToThread
+from dotenv import load_dotenv
 
+
+# from twisted.internet.threads import deferToThread
 # from scrapy_splash import SplashRequest
+
+load_dotenv(dotenv_path='../config/ambuja.env')
+load_dotenv(dotenv_path='../config/language_region_codes.env')
 
 class NewsscrapeSpider(scrapy.Spider):
     name = "newsscrape"
-    # allowed_domains = ["news.google.com"]
+    # allowed_domains = ["news.google.com"]    
+
+    # Load and clean up the values from the .env file, ensuring empty lists for missing or empty values
+    brands = [brand.strip() for brand in os.getenv('BRANDS', '').split(',')] if os.getenv('BRANDS') else []
+    search_terms = [term.strip() for term in os.getenv('SEARCH_TERMS', '').split(',')] if os.getenv('SEARCH_TERMS') else []
+    count_part_terms = [term.strip() for term in os.getenv('COUNT_PART_TERMS', '').split(',')] if os.getenv('COUNT_PART_TERMS') else []
+    count_full_term_only = [term.strip() for term in os.getenv('COUNT_FULL_TERM_ONLY', '').split(',')] if os.getenv('COUNT_FULL_TERM_ONLY') else []
+
+    # Load the language-region-pairs
+    language_region_codes_str = os.getenv('LANGUAGE_REGION_CODES', '{}')  # Default to an empty dictionary if not set
     
-    # Class variables for brand/product lines
-    brands = ['Ambuja Cements', 'ACC Limited', 'Orient Cement']
-    # brands = ['Ambuja Cements']
-    count_if_without_ambuja = ['Ambuja Kawach', 'Ambuja Cool Walls', 'Ambuja Compocem']
-    # count_if_without_ambuja = ['Ambuja Kawach']
-    count_if_full_term_only = ['Ambuja Plus']
-    # count_if_full_term_only = []
-
-
-    # Use dictionary for language-region mapping with country names and languages in words
-    language_region_codes = {
-        'en-IN': {'region': 'IN', 'country_name': 'India', 'language': 'English'},
-        'es': {'region': 'ES', 'country_name': 'Spain', 'language': 'Spanish'},
-        'hi': {'region': 'IN', 'country_name': 'India', 'language': 'Hindi'},
-        'fr': {'region': 'FR', 'country_name': 'France', 'language': 'French'},
-        'de': {'region': 'DE', 'country_name': 'Germany', 'language': 'German'},
-        'it': {'region': 'IT', 'country_name': 'Italy', 'language': 'Italian'},
-        'pt': {'region': 'BR', 'country_name': 'Brazil', 'language': 'Portuguese'},
-        'ja': {'region': 'JP', 'country_name': 'Japan', 'language': 'Japanese'},
-        'ko': {'region': 'KR', 'country_name': 'South Korea', 'language': 'Korean'},
-        'zh-CN': {'region': 'CN', 'country_name': 'China', 'language': 'Simplified Chinese'},
-        'zh-TW': {'region': 'TW', 'country_name': 'Taiwan', 'language': 'Traditional Chinese'},
-        'ar': {'region': 'SA', 'country_name': 'Saudi Arabia', 'language': 'Arabic'},
-        'ru': {'region': 'RU', 'country_name': 'Russia', 'language': 'Russian'},
-        'pl': {'region': 'PL', 'country_name': 'Poland', 'language': 'Polish'},
-        'tr': {'region': 'TR', 'country_name': 'Turkey', 'language': 'Turkish'},
-        'nl': {'region': 'NL', 'country_name': 'Netherlands', 'language': 'Dutch'},
-        'sv': {'region': 'SE', 'country_name': 'Sweden', 'language': 'Swedish'},
-        'da': {'region': 'DK', 'country_name': 'Denmark', 'language': 'Danish'},
-        'no': {'region': 'NO', 'country_name': 'Norway', 'language': 'Norwegian'},
-        'fi': {'region': 'FI', 'country_name': 'Finland', 'language': 'Finnish'},
-        'el': {'region': 'GR', 'country_name': 'Greece', 'language': 'Greek'},
-        'cs': {'region': 'CZ', 'country_name': 'Czech Republic', 'language': 'Czech'},
-        'ro': {'region': 'RO', 'country_name': 'Romania', 'language': 'Romanian'},
-        'bg': {'region': 'BG', 'country_name': 'Bulgaria', 'language': 'Bulgarian'},
-        'hu': {'region': 'HU', 'country_name': 'Hungary', 'language': 'Hungarian'},
-        'th': {'region': 'TH', 'country_name': 'Thailand', 'language': 'Thai'},
-        'vi': {'region': 'VN', 'country_name': 'Vietnam', 'language': 'Vietnamese'},
-        'id': {'region': 'ID', 'country_name': 'Indonesia', 'language': 'Indonesian'},
-        'ms': {'region': 'MY', 'country_name': 'Malaysia', 'language': 'Malay'},
-        'tl': {'region': 'PH', 'country_name': 'Philippines', 'language': 'Filipino'}
-    }
-
+    try:
+        # Convert the JSON string to a dictionary
+        language_region_codes = json.loads(language_region_codes_str)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to decode LANGUAGE_REGION_CODES JSON: {e}")
+        language_region_codes = {}  # Fallback to an empty dictionary
 
     # Define XPaths for scraping
     article_box_xpath = '//c-wiz[contains(@class,"PO9Zff")]'
@@ -61,7 +38,7 @@ class NewsscrapeSpider(scrapy.Spider):
     href_path = './/a[@class="JtKRv"]/@href'
 
     def start_requests(self):
-        for term in self.brands + self.count_if_without_ambuja + self.count_if_full_term_only:
+        for term in self.search_terms:
             search_term = term.replace(" ", "+")  # Format the term for URL
             
             # Loop through the language-region mapping to create search URLs
@@ -126,9 +103,9 @@ class NewsscrapeSpider(scrapy.Spider):
                 if decoded_url.get("status"):
                     source_link=decoded_url["decoded_url"]
                 else:
-                    print("Error:", decoded_url["message"])
+                    self.logger.error(f"Error:{decoded_url['message']}")
             except Exception as e:
-                print(f"Error occurred: {e}")
+                self.logger.error(f"Error occurred: {e}")
                 
             yield response.follow(
                                     source_link,
@@ -175,10 +152,10 @@ class NewsscrapeSpider(scrapy.Spider):
         clean_search_string = clean_join_text(response.meta['headline'],description)
         
         # Create a dictionary to store product matches with 0 count
-        product_match = {term: 0 for term in self.count_if_without_ambuja + self.count_if_full_term_only}
+        product_match = {term: 0 for term in self.count_part_terms + self.count_full_term_only}
         
         # First pass: Count full terms
-        for term in self.count_if_without_ambuja + self.count_if_full_term_only:
+        for term in self.count_part_terms + self.count_full_term_only:
             clean_term = clean_text(term)
             
             # Count the full term occurrences
@@ -187,17 +164,17 @@ class NewsscrapeSpider(scrapy.Spider):
             if full_term_count > 0:
                 product_match[term] += full_term_count
         # Second pass: Count partial terms independently, but not if already counted as full term
-        for term in self.count_if_without_ambuja:
+        for term in self.count_part_terms:
             clean_term = clean_text(term)
-            
-            # Clean the term without "Ambuja"
-            clean_term_without_ambuja = clean_term.replace('ambuja ', '')
+
+            # Clean the term without the brand name dynamically using brand
+            clean_term_without_brand = clean_term.replace(self.brand.lower(), '')
             
             # Count the partial term only if it's not already counted as part of the full term
-            if clean_term_without_ambuja in clean_search_string:
+            if clean_term_without_brand in clean_search_string:
                 # Ensure it's not part of the full term already counted
                 if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_search_string):
-                    cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_ambuja) + r'\b', clean_search_string))
+                    cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_brand) + r'\b', clean_search_string))
                     product_match[term] += cleaned_term_count
 
         # Attempt to get source name                  
