@@ -1,10 +1,8 @@
 # # Define your item pipelines here
-# #
 # # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-
 # # useful for handling different item types with a single interface
+
 from itemadapter import ItemAdapter
 import logging, os
 from dotenv import load_dotenv
@@ -14,7 +12,8 @@ class SQLite3Pipeline:
     
     def __init__(self):
         # Load environment variables from the .env files
-        load_dotenv(dotenv_path='../config/ambuja.env')  # Adjust the path as needed
+        self.brand_path = '../Config/ambuja.env'
+        load_dotenv(dotenv_path=self.brand_path)
         
         # Dynamically fetch the count terms from the environment variables
         self.count_part_terms = [term.strip() for term in os.getenv('COUNT_PART_TERMS', '').split(',')] if os.getenv('COUNT_PART_TERMS') else []
@@ -152,7 +151,7 @@ class SQLite3Pipeline:
             else:
                 logging.info(f"Duplicate item found for {item.get('headline')}. Skipping insertion.")
         except sqlite3.Error as e:
-            self.logger.error(f"Error processing item: {e}")
+            logging.error(f"Error processing item: {e}")
             self.connection.rollback()  # Rollback in case of error
         return item
 

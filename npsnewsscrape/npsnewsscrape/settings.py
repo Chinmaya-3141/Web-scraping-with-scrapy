@@ -7,6 +7,12 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
+from dotenv import load_dotenv
+
+brand_path = '../Config/ambuja.env'
+load_dotenv(dotenv_path=brand_path)
+output_file = f"{os.getenv('TABLE_NAME','news')}.json"
 
 BOT_NAME = "npsnewsscrape"
 
@@ -113,8 +119,8 @@ FEED_EXPORT_ENCODING = "utf-8"
 FEED_FORMAT = 'json'
 
 # Set the feed URI to specify the output file (it can be a path to your desired location)
-
-FEED_URI = '../Outputs/news.json'
+output_path = "../Outputs/" + output_file
+FEED_URI = output_path
 
 RETRY_ENABLED = True
 RETRY_TIMES = 3  # Number of retries

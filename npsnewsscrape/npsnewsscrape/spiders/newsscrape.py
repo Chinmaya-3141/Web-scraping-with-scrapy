@@ -1,22 +1,25 @@
+# from twisted.internet.threads import deferToThread
+# from scrapy_splash import SplashRequest
 import scrapy
 import re, uuid, string, os, json, logging
 from datetime import datetime
 from googlenewsdecoder import gnewsdecoder
 from dotenv import load_dotenv
 
+brand_path = '../../Config/ambuja.env'
+# language_path = '../Config/language_region_codes.env'
+language_path = '../Config/language_limited.env'
 
-# from twisted.internet.threads import deferToThread
-# from scrapy_splash import SplashRequest
+load_dotenv(dotenv_path=brand_path)
+load_dotenv(dotenv_path=language_path)
 
-load_dotenv(dotenv_path='../config/ambuja.env')
-load_dotenv(dotenv_path='../config/language_region_codes.env')
 
 class NewsscrapeSpider(scrapy.Spider):
     name = "newsscrape"
     # allowed_domains = ["news.google.com"]    
 
     # Load and clean up the values from the .env file, ensuring empty lists for missing or empty values
-    brands = [brand.strip() for brand in os.getenv('BRANDS', '').split(',')] if os.getenv('BRANDS') else []
+    brands = os.getenv('BRANDS')
     search_terms = [term.strip() for term in os.getenv('SEARCH_TERMS', '').split(',')] if os.getenv('SEARCH_TERMS') else []
     count_part_terms = [term.strip() for term in os.getenv('COUNT_PART_TERMS', '').split(',')] if os.getenv('COUNT_PART_TERMS') else []
     count_full_term_only = [term.strip() for term in os.getenv('COUNT_FULL_TERM_ONLY', '').split(',')] if os.getenv('COUNT_FULL_TERM_ONLY') else []
@@ -38,6 +41,12 @@ class NewsscrapeSpider(scrapy.Spider):
     href_path = './/a[@class="JtKRv"]/@href'
 
     def start_requests(self):
+        self.logger.debug(f"BRANDS: {os.getenv('BRANDS')}")
+        self.logger.debug(f"SEARCH_TERMS: {os.getenv('SEARCH_TERMS')}")
+        self.logger.debug(f"COUNT_PART_TERMS: {os.getenv('COUNT_PART_TERMS')}")
+        self.logger.debug(f"COUNT_FULL_TERM_ONLY: {os.getenv('COUNT_FULL_TERM_ONLY')}")
+        self.logger.debug(f"LANGUAGE_REGION_CODES: {os.getenv('LANGUAGE_REGION_CODES')}")
+
         for term in self.search_terms:
             search_term = term.replace(" ", "+")  # Format the term for URL
             
@@ -103,9 +112,9 @@ class NewsscrapeSpider(scrapy.Spider):
                 if decoded_url.get("status"):
                     source_link=decoded_url["decoded_url"]
                 else:
-                    self.logger.error(f"Error:{decoded_url['message']}")
+                    logging.error(f"Error:{decoded_url['message']}")
             except Exception as e:
-                self.logger.error(f"Error occurred: {e}")
+                logging.error(f"Error occurred: {e}")
                 
             yield response.follow(
                                     source_link,
@@ -168,7 +177,7 @@ class NewsscrapeSpider(scrapy.Spider):
             clean_term = clean_text(term)
 
             # Clean the term without the brand name dynamically using brand
-            clean_term_without_brand = clean_term.replace(self.brand.lower(), '')
+            clean_term_without_brand = clean_term.replace(clean_text(self.brands), '')
             
             # Count the partial term only if it's not already counted as part of the full term
             if clean_term_without_brand in clean_search_string:
@@ -207,7 +216,7 @@ class NewsscrapeSpider(scrapy.Spider):
                 'description': description,
                 'source_link': response.meta['source_link'],
                 #'source': domain,  # Extracted domain (website source)
-                **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          
+                **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_part_terms + self.count_full_term_only}          
             }
         
         self.logger.info(f"Yielding item: {item}")
