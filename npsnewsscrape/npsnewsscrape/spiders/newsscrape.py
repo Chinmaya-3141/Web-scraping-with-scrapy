@@ -9,7 +9,7 @@ Created on Fri Feb  7 00:01:00 2025
 # Update and check metadata being passed - Done.
 # Add variables for competitor brands and mentions - Done.
 # For parse article, if not allowed, try again by calling selenium middleware - Done.
-# Add Ollama parsing for unsupported languages - Pending.
+# Add Ollama parsing for unsupported languages in parse_article - Pending.
 
 
 # import asyncio
@@ -195,9 +195,7 @@ class NewsscrapeSpider(scrapy.Spider):
                     self.logger.error(f"\n\n\n\n\n\nSuccessfully downloaded article from {source_link} upon retry.\n\n\n\n\n\n")
                 except:
                     self.logger.info(f"Failed to download article: {source_link}.")
-                    
-                
-       
+
     def follow_article(self, response, source_link, headline, datetime_sql, transaction_id):
         # Prepare the article metadata
         # meta = response.meta
@@ -241,7 +239,6 @@ class NewsscrapeSpider(scrapy.Spider):
                 yield response.follow(url=source_link, callback=self.parse_article, meta = meta)
             except:
                 self.logger.error(f"Failed to download article: {source_link}.")
-
 
     def parse_article(self, response):
         # Get the full URL of the page

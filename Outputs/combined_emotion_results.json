@@ -1,0 +1,200 @@
+[
+    {
+        "url": "https://tamil.economictimes.com/market/stocks/jsw-cement-ipo-release-soon/articleshow/112584347.cms",
+        "parsed_content": [
+            "Nominal Share Price of SBIN\n \nSBIN's share price is Rs 510 /-",
+            "டாடா டிஜிட்டல் இந்தியா பண்ட் டைரக்ட்-குரோத்\nஆக்ஸிஸ் ஈக்யுடி பண்ட்-குரோத்\nஎஸ்கார்ட்ஸ் டேக்ஸ் பிளான் டைரக்ட்-குரோத்\nஎஸ்பிஐ பேலன்ஸ் அட்வான்டேஜ் ஃபண்ட் ரெகுலர்\n\nமெந்தா எண்ணெய் விலை\nஎஸ்கார்ட்ஸ் முன்னணி துறைகள் நிதி நேரடி-வளர்ச்சி\n\nஎஸ்பிஐ பேலன்ஸ் அட்வான்டேஜ் ஃபண்ட் ரெகுலர்\nஎஸ்பிஐ ஸ்மால் கேப் ஃபண்ட்\nஎஸ்பிஐ ஈக்விட்டி ஹைப்ரிட் ஃபண்ட்\n\nஎஸ்கார்ட்ஸ் லீடிங் செக்டர்ஸ் பண்ட் டைரக்ட்-குரோத்\nஎஸ்பிஐ பேலன்ஸ் அட்வான்டேஜ் ஃபண்ட் ரெகுலர்\nஎஸ்பிஐ ஸ்மால் கேப் ஃபண்ட்"
+        ],
+        "emotion_classification": {
+            "major_emotion": {},
+            "neutral_emotion": {},
+            "rejected_emotion": {
+                "Anxiety": {
+                    "score": 0,
+                    "description": "Anxiety – This is the most powerful emotion tied to danger, uncertainty, or threats."
+                },
+                "Frustration": {
+                    "score": 0,
+                    "description": "Frustration – Strong and often focused on injustice, conflict, or frustration."
+                },
+                "Sadness": {
+                    "score": 0,
+                    "description": "Sadness – Represents loss, grief, or emotional pain."
+                },
+                "Joy": {
+                    "score": 0,
+                    "description": "Joy – Celebrates happiness, success, or positive outcomes."
+                },
+                "Surprise": {
+                    "score": 0,
+                    "description": "Surprise – The emotion of something unexpected or shocking."
+                },
+                "Hope": {
+                    "score": 0,
+                    "description": "Hope – Forward-looking, expressing belief in better outcomes or change."
+                },
+                "Trust": {
+                    "score": 0.2,
+                    "description": "Trust – Confidence in someone or something; reliance."
+                },
+                "Uncertainty/Ambiguity": {
+                    "score": 0,
+                    "description": "Uncertainty/Ambiguity – A state of confusion or lack of clarity."
+                }
+            },
+            "label": {
+                "emotion": "Trust",
+                "score": 0.2
+            }
+        }
+    },
+    {
+        "url": "https://www.livemint.com/market/stock-market-news/ambuja-cement-q3-results-net-profit-soars-242-yoy-to-rs-1-758-crore-total-income-up-28-11738136777013.html",
+        "parsed_content": [
+            "Ambuja Cement Q3 Results: Net profit soars 242% YoY to ₹1,758 crore, total income up 28%\nAdani Group's Ambuja Cement reported a net profit of\n₹\n1,758.03 crore for the December quarter, up over 242% from\n₹\n513.68 crore last year. Total income rose by nearly 28% to\n₹\n5,814.89 crore compared to the previous year.\nPranati Deva\nPublished\n29 Jan 2025, 01:26 PM IST\nAmbuja Cement Q3 Results: Net profit soars 242% YoY to ₹1,758 crore, total income up 28%\nAdani Group stock Ambuja Cement announced its December quarter results on Wednesday, January 29, 2025. The cement company posted a net profit of\n₹\n1,758.03 crore, soaring multifold, over 242 percent as against\n₹\n513.68 crore in the same period last year. Sequentially as well, the profit surged 251 percent from\n₹\n500.66 crore in the September quarter (Q2FY25).\nMeanwhile, its total income also advanced almost 28 percent to\n₹\n5,814.89 crore in the quarter under review from\n₹\n4,547.73 crore in the year-ago period. on a QoQ basis, it rose 30 percent from\n₹\n4,478.24 crore in Q2FY25.\nAmbuja's Earnings Before Interest, Tax, Depreciation, and Amortisation (EBITDA) declined by 29 percent year-on-year to\n₹\n600 crore. Additionally, margins contracted by more than 700 basis points, falling to 11.9 eprcent from 19 percent in the same quarter last year.\nFor the nine months ending December 2024 (9MFY25), the company's net profit came in at\n₹\n2,826.08 crore, up almost 57 percent versus\n₹\n1,802.40 crore in the same period last year. Meanwhile, its total income also advanced over 10 percent to\n₹\n15,229.26 crore in 9MFY25 from\n₹\n13,814.83 crore in 9MFY24.\nAcquiring Orient Cement\nAmbuja Cement announced that its board has approved an open offer to acquire up to 26 percent stake in Orient Cement from public shareholders at a price of\n₹\n395.4 per share.\n\"During the quarter ended December 31, 2024, the Board of Directors of the Company has approved acquisition of 7,76,49,413 equity shares of Orient Cement Limited representing 37.9 percent of the existing share capital from the promoters / promoter group of Orient and acquisition of 1,82,23,750 equity shares of Orient representing 8.9 percent of the Existing Share Capital from the certain public shareholders of Orient. Further, the Board of Directors has also approved making an open offer for up to 5,34,19,567 equity shares at a price of\n₹\n395.40 per equity share to acquire up to 26 percent of the share capital of Orient from the public shareholders,\" said Ambuja Cement in a stock exchange filing.\nThe company also reported that the Sindri, Farakka, and Sankrail grinding units are in the advanced stages of completion. Following the completion of the Orient Cements transaction, its operational capacities are set to reach 104 MTPA by Q4FY25, 118 MTPA by FY26, and a target of 140 MTPA by FY28.\nThe firm's net worth has reached an all-time high of\n₹\n62,535 crore, with cash and cash equivalents at ₹12,435 crore.",
+            "Ambuja Cement Q3 Results: Net profit soars 242% YoY to ₹1,758 crore, total income up 28%\nHDFC Bank Share Price\nReliance Industries Share Price\nTCS Share Price\nInfosys Share Price\nHUL Share Price\nMore\nLess\nFirst Published:\n29 Jan 2025, 01:26 PM IST\nMost Active Stocks\nMarket Snapshot\nTop Gainers\nTop Losers\n52 Week High\nTrending In Market\nAjax Engineering IPO Day 1\nNykaa Q3 Results 2025 LIVE\nTilaknagar Industries share price\nFII shareholding\nIPO News Today\nGold Price Today\nRecommended For You\nMore Recommendations\nGold Prices\n24K\n22K\nFuel Price\nPetrol\nDiesel\nPopular in Markets\nStory Url has been added to your clipboard\nDownload App\nDownload the Mint app and read premium stories\nTrending Stories\nRanveer Allahbadia Controversy LIVE\nDelhi New CM Announcement LIVE\nMahakumbh 2025 LIVE\nSensex crashes\nBank Holidays in Uttar Pradesh\nLivemint Hindi\nBank Holidays in Gujarat\nBank Holidays in Delhi\nBank Holidays in September\nIncome Tax Calculator 2025\nBank Holidays in Jammu And Kashmir\nJangpura Election Results 2025 Live\nInstant Personal Loan\nCheck Credit Score Online\nBusiness Loan\nPersonal Loan Interest Rate\nPersonal Loan Eligibility\nPersonal Loan EMI Calculator\nGold Rate in Delhi\nGold Rate in Bangalore\nGold Rate in Chennai\nGold Rate in Hyderabad\nGold Rate in Mumbai\nBusiness Radio - FAB Play\nAssembly Election Results\nCredit Card\nPersonal Loan Online\nGold Rate India\nBank Holidays India\nHug Day 2025\nCBSE Board Exams 2025\nTop Budget Stories\nTax changes will increase bank deposits by ₹40,000-45,000 crore: DFS secretary\nInsurance reforms: Govt to further relax foreign investment rules\nThis is why workers won’t stay in villages\nDays of intrusive tax scrutiny are over: CBDT chairperson Ravi Agarwal\nCentral reform conditions to be tightened for interest-free capex loan: Seth\nIndia’s budget sends positive signals to Donald Trump: CBIC chair\nHow income tax ‘buoyancy’ helped FM to cut income tax\n’PM Modi was very clear...’ \nshare price\nSBI LIFE\nshare price\nSBI\nshare price\nSUN PHARMA\nshare price\nTCS\nshare price\nTATA MOTORS\nshare price\nTATA STEEL\nshare price\nTATA CONSUMER\nshare price\nTECH MAHINDRA\nshare price\nTITAN\nshare price\nUPL\nshare price\nULTRATECH CEMENT\nshare price\nWIPRO\nshare price\nLatest Stories\nSection\nPremium\nOpinion\nNews\nMarket\nPolitics\nCompanies\nMoney\nSports\nMutual Fund\nIndustry\nTechnology\nTools\nIFSC Code Finder\nIncome Tax Calculator\nSIP Calculator\nHome Loan EMI Calculator\nCar Loan EMI\nNPS Calculator\nData Pages\nMarket Dashboard\nIndices\nTop Gainer\nMutual Funds\nGold Price\nSilver Price\nFuel Price\nAbout Us\nMint Authors\nContact us\nTerms of Use\nCode of Ethics\nPrivacy Policy\nRSS\nCopyright © 2025 HT Digital Streams Limited. All Rights Reserved.\nWait for it…\nLog in to our website to save your bookmarks. It'll just take a moment.\nYes, Continue.\n\nExtracted Information:\n\nAmbuja Cement Q3 Results: Net profit soars 242% YoY to ₹1,758 crore, total income up 28%\nHDFC Bank Share Price\nReliance Industries Share Price\nTCS Share Price\nInfosys Share Price\nHUL Share Price"
+        ],
+        "emotion_classification": {
+            "major_emotion": {},
+            "neutral_emotion": {
+                "Trust": {
+                    "score": 0.5,
+                    "description": "Trust – Confidence in someone or something; reliance."
+                }
+            },
+            "rejected_emotion": {
+                "Anxiety": {
+                    "score": 0,
+                    "description": "Anxiety – This is the most powerful emotion tied to danger, uncertainty, or threats."
+                },
+                "Frustration": {
+                    "score": 0,
+                    "description": "Frustration – Strong and often focused on injustice, conflict, or frustration."
+                },
+                "Sadness": {
+                    "score": 0,
+                    "description": "Sadness – Represents loss, grief, or emotional pain."
+                },
+                "Joy": {
+                    "score": 0.4,
+                    "description": "Joy – Celebrates happiness, success, or positive outcomes."
+                },
+                "Surprise": {
+                    "score": 0.3,
+                    "description": "Surprise – The emotion of something unexpected or shocking."
+                },
+                "Hope": {
+                    "score": 0.1,
+                    "description": "Hope – Forward-looking, expressing belief in better outcomes or change."
+                },
+                "Uncertainty/Ambiguity": {
+                    "score": 0,
+                    "description": "Uncertainty/Ambiguity – A state of confusion or lack of clarity."
+                }
+            },
+            "label": {
+                "emotion": "Trust",
+                "score": 0.5
+            }
+        }
+    },
+    {
+        "url": "https://divyamarathi.bhaskar.com/business/news/adani-ambuja-cements-subsidiary-merger-update-sanghi-industries-penna-cement-134137444.html",
+        "parsed_content": [
+            "सांघी इंडस्ट्रीजचे शेअर्स 0.19 टक्क्यांनी घसरले."
+        ],
+        "emotion_classification": {
+            "major_emotion": {
+                "Uncertainty/Ambiguity": {
+                    "score": 0.8,
+                    "description": "Uncertainty/Ambiguity – A state of confusion or lack of clarity."
+                }
+            },
+            "neutral_emotion": {},
+            "rejected_emotion": {
+                "Anxiety": {
+                    "score": 0,
+                    "description": "Anxiety – This is the most powerful emotion tied to danger, uncertainty, or threats."
+                },
+                "Frustration": {
+                    "score": 0.2,
+                    "description": "Frustration – Strong and often focused on injustice, conflict, or frustration."
+                },
+                "Sadness": {
+                    "score": 0,
+                    "description": "Sadness – Represents loss, grief, or emotional pain."
+                },
+                "Joy": {
+                    "score": 0,
+                    "description": "Joy – Celebrates happiness, success, or positive outcomes."
+                },
+                "Surprise": {
+                    "score": 0,
+                    "description": "Surprise – The emotion of something unexpected or shocking."
+                },
+                "Hope": {
+                    "score": 0,
+                    "description": "Hope – Forward-looking, expressing belief in better outcomes or change."
+                },
+                "Trust": {
+                    "score": 0,
+                    "description": "Trust – Confidence in someone or something; reliance."
+                }
+            },
+            "label": {
+                "emotion": "Uncertainty/Ambiguity",
+                "score": 0.8
+            }
+        }
+    },
+    {
+        "url": "https://www.zeebiz.com/hindi/companies/ambuja-cements-q3-results-hits-a-hat-trick-of-profits-earnings-surge-by-242-to-rs-1758-crore-199863",
+        "parsed_content": [
+            "Ambuja Cements ने नेट प्रॉफिट में शानदार उछाल दर्ज किया है, लेकिन ऑपरेटिंग मार्जिन में गिरावट चिंता का विषय हो सकता है.",
+            "र लें चेक\nShark Tank India-4:इतिहास में पहली बार.. दोबारा आया कोई फाउंडर, ₹10 की पिच से जज हुए भावुक, हुई ऑल 5 शार्क डील"
+        ],
+        "emotion_classification": {
+            "major_emotion": {},
+            "neutral_emotion": {
+                "Surprise": {
+                    "score": 0.7,
+                    "description": "Surprise – The emotion of something unexpected or shocking."
+                }
+            },
+            "rejected_emotion": {
+                "Anxiety": {
+                    "score": 0,
+                    "description": "Anxiety – This is the most powerful emotion tied to danger, uncertainty, or threats."
+                },
+                "Frustration": {
+                    "score": 0.2,
+                    "description": "Frustration – Strong and often focused on injustice, conflict, or frustration."
+                },
+                "Sadness": {
+                    "score": 0.1,
+                    "description": "Sadness – Represents loss, grief, or emotional pain."
+                },
+                "Joy": {
+                    "score": 0.4,
+                    "description": "Joy – Celebrates happiness, success, or positive outcomes."
+                },
+                "Hope": {
+                    "score": 0,
+                    "description": "Hope – Forward-looking, expressing belief in better outcomes or change."
+                },
+                "Trust": {
+                    "score": 0,
+                    "description": "Trust – Confidence in someone or something; reliance."
+                },
+                "Uncertainty/Ambiguity": {
+                    "score": 0,
+                    "description": "Uncertainty/Ambiguity – A state of confusion or lack of clarity."
+                }
+            },
+            "label": {
+                "emotion": "Surprise",
+                "score": 0.7
+            }
+        }
+    }
+]
