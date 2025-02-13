@@ -75,8 +75,8 @@ ROBOTSTXT_OBEY = False
 
 
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,  # Retry middleware
-    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware':543,  # Selenium middleware
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 543,  # Retry middleware
+    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware':90,  # Selenium middleware
 }
 
 

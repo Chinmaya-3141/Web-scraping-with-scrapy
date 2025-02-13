@@ -21,6 +21,7 @@ from googlenewsdecoder import gnewsdecoder
 from newspaper import Article, ArticleException
 
 from scrapy.http import HtmlResponse
+from twisted.internet.error import ConnectionLost, TimeoutError
 
 import re, uuid, string, os, json, time, logging
 from datetime import datetime
@@ -187,9 +188,9 @@ class NewsscrapeSpider(scrapy.Spider):
                 }
             try:
                 yield response.follow(url=source_link, callback=self.parse_article, meta = metadata)
-            except:
+            except (ArticleException, ConnectionLost, TimeoutError) as e:
                 try:
-                    self.logger.error(f"Failed to download {source_link} using scrapy. Trying using Selenium")
+                    self.logger.error(f"Failed to download {source_link} using scrapy: {e}. Retrying using Selenium")
                     metadata.update({'selenium':True})
                     yield response.follow(url=source_link, callback=self.parse_article, meta = metadata)
                     self.logger.error(f"\n\n\n\n\n\nSuccessfully downloaded article from {source_link} upon retry.\n\n\n\n\n\n")
@@ -231,7 +232,7 @@ class NewsscrapeSpider(scrapy.Spider):
             # self.logger.warning(f"\n\n\n\n\n\n\n\nupdated metadata: {meta}\n\n\n\n\n\n\n\n")
             yield response.follow(url=source_link, callback=self.parse_article, meta = meta)
                     
-        except ArticleException as e:
+        except (ArticleException,ConnectionLost, TimeoutError) as e:
             self.logger.error(f"\n\n\n\n\n\nFailed to download article from {source_link} using Article. Error: {str(e)}")
             try:
                 self.logger.info(f"Trying to download {source_link} using Selenium\n\n\n\n")
@@ -412,6 +413,6 @@ class NewsscrapeSpider(scrapy.Spider):
                 **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_part_terms_client + self.count_part_terms_competitor + self.count_full_term_only_client + self.count_full_term_only_competitor}          
             }
         
-        self.logger.info(f"\n\n\n\nYielding item: {item}\n\n\n\n")
+        # self.logger.info(f"\n\n\n\nYielding item: {item}\n\n\n\n")
 
         yield item
