@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = "npsnewsscrape.spiders"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "npsnewsscrape (+http://www.yourdomain.com)"
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
+# USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -70,10 +70,18 @@ ROBOTSTXT_OBEY = False
 #     # "npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware": 543,  # Custom middleware, keep or remove if not needed
 #     'npsnewsscrape.middlewares.SeleniumMiddleware':543,
 # }
+
+
+
+
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,  # Retry middleware
-    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware': 543,  # Selenium middleware
+    'npsnewsscrape.middlewares.NpsnewsscrapeDownloaderMiddleware':543,  # Selenium middleware
 }
+
+
+
+
 # SELENIUM_DRIVER = 'firefox'
 
 # Enable or disable extensions
@@ -82,12 +90,18 @@ DOWNLOADER_MIDDLEWARES = {
 #    "scrapy.extensions.telnet.TelnetConsole": None,
 #}
 
+
+
+
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   #"npsnewsscrape.pipelines.NpsnewsscrapePipeline": 300,
-   "npsnewsscrape.pipelines.SQLite3Pipeline": 200,
-}
+# ITEM_PIPELINES = {
+#    #"npsnewsscrape.pipelines.NpsnewsscrapePipeline": 300,
+#    "npsnewsscrape.pipelines.SQLite3Pipeline": 200,
+# }
+
+
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -123,7 +137,7 @@ output_path = "../Outputs/" + output_file
 FEED_URI = output_path
 
 RETRY_ENABLED = True
-RETRY_TIMES = 3  # Number of retries
+RETRY_TIMES = 5  # Number of retries
 RETRY_HTTP_CODES = [408, 429, 500, 502, 503, 504]#,443]  # Retry on 429 errors
 # RETRY_PRIORITY_ADJUST = 1  # Adjust the retry priority (can be positive or negative)
 RETRY_DELAY = 15  # Delay between retries, in seconds (adjust this)

@@ -1,10 +1,32 @@
-# from twisted.internet.threads import deferToThread
-# from scrapy_splash import SplashRequest
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb  7 00:01:00 2025
+
+@author: chinmaya
+"""
+# Changes:
+# Update and check metadata being passed - Done.
+# Add variables for competitor brands and mentions - Done.
+# For parse article, if not allowed, try again by calling selenium middleware - Done.
+# Add Ollama parsing for unsupported languages - Pending.
+
+
+# import asyncio
+# import aiohttp
+# from scrapy.utils.defer import deferred_from_coro
+
 import scrapy
-import re, uuid, string, os, json, logging
-from datetime import datetime
 from googlenewsdecoder import gnewsdecoder
+from newspaper import Article, ArticleException
+
+from scrapy.http import HtmlResponse
+
+import re, uuid, string, os, json, time, logging
+from datetime import datetime
 from dotenv import load_dotenv
+import requests
+
 
 brand_path = '../../Config/ambuja.env'
 # language_path = '../Config/language_region_codes.env'
@@ -13,187 +35,267 @@ language_path = '../Config/language_limited.env'
 load_dotenv(dotenv_path=brand_path)
 load_dotenv(dotenv_path=language_path)
 
+def load_and_process_env_variable(env_var_name, fallback_path=''):
+    # Fetch the raw string from the environment variable
+    content = os.getenv(env_var_name, fallback_path)
+    # Remove comments (lines starting with # or //)
+    content = re.sub(r'^\s*(#|//).*$', '', content, flags=re.MULTILINE)
+    # Strip any leading/trailing whitespace
+    content = content.strip()  
+    try:
+        # Convert the cleaned JSON string into a Python dictionary
+        parsed_data = json.loads(content)
+        return parsed_data
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode the JSON from the environment variable '{env_var_name}': {e}")
+        return {}
 
 class NewsscrapeSpider(scrapy.Spider):
     name = "newsscrape"
-    # allowed_domains = ["news.google.com"]    
 
-    # Load and clean up the values from the .env file, ensuring empty lists for missing or empty values
-    brands = os.getenv('BRANDS')
-    search_terms = [term.strip() for term in os.getenv('SEARCH_TERMS', '').split(',')] if os.getenv('SEARCH_TERMS') else []
-    count_part_terms = [term.strip() for term in os.getenv('COUNT_PART_TERMS', '').split(',')] if os.getenv('COUNT_PART_TERMS') else []
-    count_full_term_only = [term.strip() for term in os.getenv('COUNT_FULL_TERM_ONLY', '').split(',')] if os.getenv('COUNT_FULL_TERM_ONLY') else []
-
-    # Load the language-region-pairs
-    language_region_codes_str = os.getenv('LANGUAGE_REGION_CODES', '{}')  # Default to an empty dictionary if not set
+    # Load and clean up the values from the .env files for client
+    brands_client = os.getenv('BRANDS')
+    search_terms_client = [term.strip() for term in os.getenv('SEARCH_TERMS', '').split(',')] if os.getenv('SEARCH_TERMS') else []
+    count_part_terms_client = [term.strip() for term in os.getenv('COUNT_PART_TERMS', '').split(',')] if os.getenv('COUNT_PART_TERMS') else []
+    count_full_term_only_client = [term.strip() for term in os.getenv('COUNT_FULL_TERM_ONLY', '').split(',')] if os.getenv('COUNT_FULL_TERM_ONLY') else []
     
-    try:
-        # Convert the JSON string to a dictionary
-        language_region_codes = json.loads(language_region_codes_str)
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to decode LANGUAGE_REGION_CODES JSON: {e}")
-        language_region_codes = {}  # Fallback to an empty dictionary
+    # Load and clean up the values from the .env files for competitor
+    brands_competitor = os.getenv('BRANDS_COMPETITOR')
+    search_terms_competitor = [term.strip() for term in os.getenv('SEARCH_TERMS_COMPETITOR', '').split(',')] if os.getenv('SEARCH_TERMS_COMPETITOR') else []
+    count_part_terms_competitor = [term.strip() for term in os.getenv('COUNT_PART_TERMS_COMPETITOR', '').split(',')] if os.getenv('COUNT_PART_TERMS_COMPETITOR') else []
+    count_full_term_only_competitor = [term.strip() for term in os.getenv('COUNT_FULL_TERM_ONLY_COMPETITOR', '').split(',')] if os.getenv('COUNT_FULL_TERM_ONLY_COMPETITOR') else []
+    
+    search_terms = search_terms_client + search_terms_competitor
+    count_full_term_only = count_full_term_only_client + count_full_term_only_competitor
+    
+    supported_language_region_codes = load_and_process_env_variable('LANGUAGE_REGION_CODES')
+    unsupported_language_region_codes = load_and_process_env_variable('UNSUPPORTED_CODES')
+    all_language_region_codes = {**supported_language_region_codes, **unsupported_language_region_codes}
+
+    
 
     # Define XPaths for scraping
-    article_box_xpath = '//c-wiz[contains(@class,"PO9Zff")]'
+    article_box_xpath = '//c-wiz[@class="PO9Zff Ccj79 kUVvS"]'
     headline_xpath = './/a[contains(@class,"JtKRv")]'
     datetime_xpath = './/div[contains(@class,"UOVeFe")]/time/@datetime'
     href_path = './/a[@class="JtKRv"]/@href'
 
+    # Function to remove whitespace and punctuation.    
+    def clean_text(*texts):
+        # Replace None or unexpected blank values with empty strings
+        cleaned_texts = [text if text and isinstance(text, str) else '' for text in texts]
+        
+        # Join the texts, remove punctuations, lowercase, and clean extra spaces
+        combined_text = ' '.join(cleaned_texts)
+        combined_text = combined_text.translate(str.maketrans('', '', string.punctuation)).lower().strip()          
+        combined_text = combined_text.replace('\n', ' ').replace('\t', ' ').replace('\r', ' ')
+        combined_text = ' '.join(combined_text.split())  # Remove multiple spaces
+        return combined_text
+    # Remove only whitespaces
+    def clean_spaces(*texts):
+        # Replace None or unexpected blank values with empty strings
+        cleaned_texts = [text if text and isinstance(text, str) else '' for text in texts]
+        
+        # Join the texts, remove punctuations, lowercase, and clean extra spaces
+        combined_text = ' '.join(cleaned_texts)
+        combined_text = combined_text.replace('\n', ' ').replace('\t', ' ').replace('\r', ' ')
+        combined_text = ' '.join(combined_text.split())  # Remove multiple spaces
+        return combined_text
+    
+    # Create all requests in tasks, assign session and start executing asynchronously
     def start_requests(self):
-        self.logger.debug(f"BRANDS: {os.getenv('BRANDS')}")
-        self.logger.debug(f"SEARCH_TERMS: {os.getenv('SEARCH_TERMS')}")
-        self.logger.debug(f"COUNT_PART_TERMS: {os.getenv('COUNT_PART_TERMS')}")
-        self.logger.debug(f"COUNT_FULL_TERM_ONLY: {os.getenv('COUNT_FULL_TERM_ONLY')}")
-        self.logger.debug(f"LANGUAGE_REGION_CODES: {os.getenv('LANGUAGE_REGION_CODES')}")
+        self.logger.debug(f"BRANDS: {self.brands_client}")
+        self.logger.debug(f"SEARCH_TERMS: {self.search_terms_client}")
+        self.logger.debug(f"COUNT_PART_TERMS: {self.count_part_terms_client}")
+        self.logger.debug(f"COUNT_FULL_TERM_ONLY: {self.count_full_term_only_client}")
+        self.logger.debug(f"\n\nBRANDS: {self.brands_competitor}")
+        self.logger.debug(f"SEARCH_TERMS: {self.search_terms_competitor}")
+        self.logger.debug(f"COUNT_PART_TERMS: {self.count_part_terms_competitor}")
+        self.logger.debug(f"COUNT_FULL_TERM_ONLY: {self.count_full_term_only_competitor}")
+        self.logger.debug(f"LANGUAGE_REGION_CODES (Newspaper3k supported): {os.getenv('LANGUAGE_REGION_CODES')}")
+        self.logger.debug(f"LANGUAGE_REGION_CODES (Not Newspaper3k supported): {os.getenv('UNSUPPORTED_CODES')}")
+        # self.logger.debug(f"\n\n\n\n\n\n\n\n  LANGUAGE_REGION_CODES: {self.all_language_region_codes}")     
 
         for term in self.search_terms:
-            search_term = term.replace(" ", "+")  # Format the term for URL
-            
-            # Loop through the language-region mapping to create search URLs
-            for language, data in self.language_region_codes.items():
+            search_term = term.replace(" ", "+")
+            # self.logger.warning(f"\n\n\n\n\n\n\n\nNew search term found: {search_term}\n\n\n\n\n\n\n\n")
+            for language, data in self.all_language_region_codes.items():
                 search_url = f"https://news.google.com/search?q={search_term}&hl={language}&gl={data['region']}"
-                
-                # Use the 'selenium' flag only for the pages that require JavaScript rendering
-                yield scrapy.Request(
-                    url=search_url,
-                    callback=self.extract_article_data,
-                    meta={
-                        'search_term': term,
-                        'language': language,
-                        'region': data['region'],
-                        'country_name': data['country_name'],
-                        'country_language': data['language'],
-                        'selenium': True,  # Set this to True for JavaScript-rendered pages
-                    }
-                )
-
-        
+                metadata = {
+                    'search_term': term,
+                    'language': language,
+                    'region': data['region'],
+                    'country_name': data['country_name'],
+                    'country_language': data['language'],
+                }
+                html_body = requests.get(search_url)
+                # self.logger.warning(f"\n\n\n\n\n\n\n\nNew search term requested in new language: {data['language']}\n\n\n\n\n\n\n\n")
+                request = scrapy.Request(url=search_url, callback=self.parse, meta=metadata)
+                html_content = HtmlResponse(url=search_url, body= html_body.content, encoding='utf-8', request = request)
+                html_content.meta.update(metadata)
+                yield from self.extract_article_data(html_content)   
+            
     def extract_article_data(self, response):
         article_boxes = response.xpath(self.article_box_xpath)
-
-        # Loop over each article box on the page
+        self.logger.info(f'{len(article_boxes)} articles retrieved')
         for box in article_boxes:
-            # Generating a unique UUID for the article
-            transaction_id = str(uuid.uuid4())
-            
-            # Get headline
-            headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
-            
-            # Get datetime from the article
-            datetime_str = box.xpath(self.datetime_xpath).get()
-            if datetime_str:
-                try:
-                    dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
-                except ValueError:
-                    dt = None
-            else:
-                dt = None
-            
-            # Format datetime
-            if dt:
-                datetime_sql = dt.strftime("%Y-%m-%d %H:%M:%S")  # Standard SQL format
-            else:
-                datetime_sql = None
-                                  
- 
-            # Get article URL
-            href_value = box.xpath(self.href_path).get()
-            if href_value:
-                href_value = href_value.lstrip('.')
-            else:
-                href_value = ''
-                
-            link = "https://news.google.com" + href_value.replace('\n','').replace('\r','').replace('\t','').replace(' ','')
-            source_link = link
-            try:
-                decoded_url = gnewsdecoder(link, interval=1)
+            yield from self.process_article_box(box,response)
         
-                if decoded_url.get("status"):
-                    source_link=decoded_url["decoded_url"]
-                else:
-                    logging.error(f"Error:{decoded_url['message']}")
-            except Exception as e:
-                logging.error(f"Error occurred: {e}")
+    def process_article_box(self, box,response):
+        # Extract the article link and headline
+        headline = box.xpath(self.headline_xpath + '/text()').get().strip() if box.xpath(self.headline_xpath) else 'No Headline'
+        
+        # Get datetime from the article
+        datetime_str = box.xpath(self.datetime_xpath).get()
+        dt = None
+        if datetime_str:
+            try:
+                if 'Z' in datetime_str:
+                    datetime_str = datetime_str.replace('Z', '+00:00')
+                dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S%z")
+            except ValueError as e:
+                logging.error(f"Error parsing datetime: {e}")
+
+        datetime_sql = dt.isoformat() if dt else None
+        
+        href_value = box.xpath(self.href_path).get()
+        link = f"https://news.google.com{href_value.lstrip('.')}" if href_value else ''
+        source_link = link
+        
+        try:
+            # Decode the URL using gnewsdecoder
+            decoded_url = gnewsdecoder(link, interval=1)
+            if decoded_url.get("status"):
+                source_link = decoded_url["decoded_url"]
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            
+        transaction_id = str(uuid.uuid4()) 
+        if response.meta['language'] not in self.unsupported_language_region_codes:
+            yield from self.follow_article(response, source_link, headline, datetime_sql, transaction_id)
+        else:
+            metadata = {
+                    'transaction_id':transaction_id,
+                    'search_term': response.meta.get('search_term'),
+                    'language': response.meta.get('language'),
+                    'region': response.meta.get('region'),
+                    'country_name': response.meta.get('country_name'),
+                    'country_language': response.meta.get('country_language'),
+                    'source_link':source_link,
+                    'headline':headline,
+                    'article_datetime':datetime_sql,
+                }
+            try:
+                yield response.follow(url=source_link, callback=self.parse_article, meta = metadata)
+            except:
+                try:
+                    self.logger.error(f"Failed to download {source_link} using scrapy. Trying using Selenium")
+                    metadata.update({'selenium':True})
+                    yield response.follow(url=source_link, callback=self.parse_article, meta = metadata)
+                    self.logger.error(f"\n\n\n\n\n\nSuccessfully downloaded article from {source_link} upon retry.\n\n\n\n\n\n")
+                except:
+                    self.logger.info(f"Failed to download article: {source_link}.")
+                    
                 
-            yield response.follow(
-                                    source_link,
-                                    callback=self.parse_article,
-                                    meta={
-                                        'transaction_id': transaction_id,
-                                        'search_term': response.meta['search_term'],
-                                        'country_name': response.meta['country_name'],
-                                        'country_language': response.meta['country_language'],
-                                        'headline': headline,
-                                        'article_datetime': datetime_sql,
-                                        'source_link': source_link,
-                                        }
-                                    )
+       
+    def follow_article(self, response, source_link, headline, datetime_sql, transaction_id):
+        # Prepare the article metadata
+        # meta = response.meta
+        # self.logger.warning(f"\n\n\n\n\n\n\n\nsource link:{source_link}\n\n\n\n\n\n\n\n")
+        meta = {
+            'transaction_id': transaction_id,
+            'search_term': response.meta.get('search_term'),
+            'country_name': response.meta.get('country_name'),
+            'country_language': response.meta.get('country_language'),
+            'headline': headline,
+            'article_datetime': datetime_sql,
+            'source_link': source_link,
+            }
+        # self.logger.warning(f"\n\n\n\n\n\n\n\nsource metadata :{meta}\n\n\n\n\n\n\n\n")          
+        try:
+            article = Article(source_link)
+            article.download()
+            article.parse()
+            # meta = response.meta
+            # article_test_data = article.meta_description
+            # self.logger.warning(f"\n\n\n\n\n\n\n\article_test_data: {article_test_data}\n\n\n\n\n\n\n\n")            
+            
+            meta.update({
+                'description': article.meta_description,
+                'article_body': article.text,
+                'authors': article.authors,
+                'keywords': article.meta_keywords,
+                'tags': article.tags,
+                'article_images': article.meta_img,
+                'all_images': article.images,
+                'article_metadata': article.meta_data,
+            })
+            # self.logger.warning(f"\n\n\n\n\n\n\n\nupdated metadata: {meta}\n\n\n\n\n\n\n\n")
+            yield response.follow(url=source_link, callback=self.parse_article, meta = meta)
+                    
+        except ArticleException as e:
+            self.logger.error(f"\n\n\n\n\n\nFailed to download article from {source_link} using Article. Error: {str(e)}")
+            try:
+                self.logger.info(f"Trying to download {source_link} using Selenium\n\n\n\n")
+                meta.update({'selenium':True})
+                yield response.follow(url=source_link, callback=self.parse_article, meta = meta)
+            except:
+                self.logger.error(f"Failed to download article: {source_link}.")
+
 
     def parse_article(self, response):
         # Get the full URL of the page
-        full_url = response.url
-        self.logger.info(f"visiting url: {full_url}")
+        # self.logger.warning("\n\n\n\n\n\n\n\n Parse Article Called here \n\n\n\n\n\n\n\n")
+        self.logger.info(f"visiting url: {response.meta['source_link']}")
+        # meta = response.meta
+        # self.logger.warning(f"\n\n\n\n\n\n\n\n passed metadata: {response.meta}\n\n\n\n\n\n\n\n")
 
-        # Remove punctuation (e.g., .,!,? etc.), convert to lowercase
-        try:
-            description = response.xpath("//meta[@property='og:description']/@content").get()
-            if not description:
-                raise ValueError("No content found for og:description")
-        except Exception:
+        # Search for description
+        if(response.meta.get('description')):
+            description = response.meta.get('description')
+        else:
             try:
-                description = response.xpath("//meta[@name='og:description']/@content").get()
+                description = response.xpath("//meta[contains(@property,'description')]/@content").get()
                 if not description:
-                    raise ValueError("No content found for og:description")
+                    raise ValueError("No content found for description")
             except Exception:
-                description = "Not Available"
-        
-        def clean_join_text(text1, text2):
-            # Combine the two input strings with a space
-            combined_text = f"{text1} {text2}"
-            
-            # Clean the combined text: remove punctuation, convert to lowercase, and strip spaces
-            return combined_text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
-        def clean_text(text):
-            return text.translate(str.maketrans('', '', string.punctuation)).lower().strip()
+                try:
+                    description = response.xpath("//meta[contains(@name,'description')]/@content").get()
+                    if not description:
+                        raise ValueError("No content found for description")
+                except Exception:
+                    description = "Not Available"
 
-        # Join headline and description, clean string by removing punctuation, make lowercase
-        clean_search_string = clean_join_text(response.meta['headline'],description)
-        
-        # Create a dictionary to store product matches with 0 count
-        product_match = {term: 0 for term in self.count_part_terms + self.count_full_term_only}
-        
-        # First pass: Count full terms
-        for term in self.count_part_terms + self.count_full_term_only:
-            clean_term = clean_text(term)
-            
-            # Count the full term occurrences
-            full_term_count = len(re.findall(r'\b' + re.escape(clean_term) + r'\b', clean_search_string))
-            
-            if full_term_count > 0:
-                product_match[term] += full_term_count
-        # Second pass: Count partial terms independently, but not if already counted as full term
-        for term in self.count_part_terms:
-            clean_term = clean_text(term)
-
-            # Clean the term without the brand name dynamically using brand
-            clean_term_without_brand = clean_term.replace(clean_text(self.brands), '')
-            
-            # Count the partial term only if it's not already counted as part of the full term
-            if clean_term_without_brand in clean_search_string:
-                # Ensure it's not part of the full term already counted
-                if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_search_string):
-                    cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_brand) + r'\b', clean_search_string))
-                    product_match[term] += cleaned_term_count
-
-        # Attempt to get source name                  
+        # Search for author
+        if(response.meta.get('authors')):
+            authors = response.meta.get('authors')
+        else:                 
+            try:
+                authors = response.xpath("//meta[contains(@property,'site_name')]/@content").get()
+                if not authors:  # If no content is found, handle it
+                    raise ValueError("No content found for author")
+            except Exception:
+                try:
+                    authors = response.xpath("//meta[contains(@name,'site_name')]/@content").get()
+                    if not authors:
+                        raise ValueError("No content found for author")
+                except Exception:
+                    try:
+                        pattern = r"https?://(?:[a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+)(?=\.[a-zA-Z]+(?:\/|$))"
+                        match = re.search(pattern, response.meta['source_link'])
+                        if match:
+                            authors = match.group(1)  # This will print the domain name
+                    except Exception:
+                        authors = "Not Available"  # Default to "Not Available" if both fail
+ 
+               
         try:
-            source = response.xpath("//meta[@property='og:site_name']/@content").get()
+            source = response.xpath("//meta[contains(@property,'site_name')]/@content").get()
             if not source:  # If no content is found, handle it
                 raise ValueError("No content found for og:site_name")
         except Exception:
             try:
-                source = response.xpath("//meta[@name='og:site_name']/@content").get()
+                source = response.xpath("//meta[contains(@name,'site_name')]/@content").get()
                 if not source:
                     raise ValueError("No content found for og:site_name")
             except Exception:
@@ -204,120 +306,115 @@ class NewsscrapeSpider(scrapy.Spider):
                         source = match.group(1)  # This will print the domain name
                 except Exception:
                     source = "Not Available"  # Default to "Not Available" if both fail
+                    
+        # Search for keywords
+        if(response.meta.get('keywords')):
+            keywords = response.meta.get('keywords')
+        else:                 
+            try:
+                keywords = response.xpath("//meta[contains(@name,'keywords')]/@content").get()
+                if not keywords:  # If no content is found, handle it
+                    raise ValueError("No content found for keywords")
+            except Exception:
+                try:
+                    keywords = response.xpath("//meta[contains(@name,'news_keywords')]/@content").get()
+                    if not keywords:
+                        raise ValueError("No content found for keywords")
+                except Exception:
+                    try:
+                        keywords = response.xpath("//meta[contains(@property,'keywords')]/@content").get()
+                        if not keywords:  # If no content is found, handle it
+                            raise ValueError("No content found for keywords")
+                    except Exception:
+                        try:
+                            keywords = response.xpath("//meta[contains(@property,'news_keywords')]/@content").get()
+                            if not keywords:
+                                raise ValueError("No content found for keywords")
+                        except Exception:
+                            keywords = "Not Available"  # Default to "Not Available" if both fail
+        if(response.meta.get('tags')):
+            tags = response.meta.get('tags')
+        else:
+            tags=[]
+            
+        if(response.meta.get('article_images')):
+            images = response.meta.get('article_images')
+        else:
+            images=[]
+                        
+        if(response.meta.get('all_images')):
+            all_images = response.meta.get('all_images')
+        else:
+            all_images=[]
+            
+        if(response.meta.get('article_metadata')):
+            article_metadata = response.meta.get('article_metadata')
+        else:
+            article_metadata=[]
+            
+        if(response.meta.get('article_body')):
+            article_body = response.meta.get('article_body')
+        else:
+            article_body=[]
+                
+        # Join headline and description, clean string by removing punctuation, make lowercase
+        clean_search_string = self.clean_text(response.meta.get('headline'),description,article_body)
+        
+        # Create a dictionary to store product matches with 0 count
+        product_match = {term: 0 for term in self.count_part_terms_client + self.count_full_term_only_client + self.count_full_term_only_competitor + self.count_part_terms_competitor}
+        
+        # First pass: Count full terms
+        for term in self.count_part_terms_client + self.count_full_term_only_client + self.count_full_term_only_competitor + self.count_part_terms_competitor:
+            clean_term = self.clean_text(term)
+            
+            # Count the full term occurrences
+            full_term_count = len(re.findall(r'\b' + re.escape(clean_term) + r'\b', clean_search_string))
+            
+            if full_term_count > 0:
+                product_match[term] += full_term_count
+                
+        # Second pass: Count partial terms independently, but not if already counted as full term
+        for term in self.count_part_terms_client + self.count_part_terms_competitor:
+            clean_term = self.clean_text(term)
+        
+            # Remove any brand terms from both client and competitor brands if they are a prefix in the partial term
+            clean_term_without_brand = clean_term
+            for brand in self.brands_client + self.brands_competitor:  # Combine both client and competitor brands
+                clean_brand = self.clean_text(brand)
+                
+                # Check if the partial term starts with any of the brand terms
+                if clean_term.startswith(clean_brand):
+                    # If yes, remove the brand term from the search string
+                    clean_term_without_brand = clean_term.replace(clean_brand, '', 1)  # Only remove the first occurrence
+            
+            # Count the partial term only if it's not already counted as part of the full term
+            if clean_term_without_brand in clean_search_string:
+                # Ensure it's not part of the full term already counted
+                if not re.search(r'\b' + re.escape(clean_term) + r'\b', clean_search_string):
+                    cleaned_term_count = len(re.findall(r'\b' + re.escape(clean_term_without_brand) + r'\b', clean_search_string))
+                    product_match[term] += cleaned_term_count
         
         item =  {
-                'transaction_id': response.meta['transaction_id'],
-                'article_datetime': response.meta['article_datetime'],
-                'search_term': response.meta['search_term'],        
-                'country_name': response.meta['country_name'],      
-                'country_language': response.meta['country_language'],
+                'transaction_id': response.meta.get('transaction_id'),
+                'article_datetime': response.meta.get('article_datetime'),
+                'search_term': response.meta.get('search_term'),
+                'country_name': response.meta.get('country_name'),      
+                'country_language': response.meta.get('country_language'),
                 'news_source': source,
-                'headline': response.meta['headline'],
+                'authors':authors,
+                'headline': response.meta.get('headline'),
                 'description': description,
-                'source_link': response.meta['source_link'],
+                'article_body':article_body,
+                'source_link': response.meta.get('source_link'),
+                'keywords':keywords,
+                'tags':tags,
+                'article_images':images,
+                'all_images':all_images,
+                'article_metadata':article_metadata,
                 #'source': domain,  # Extracted domain (website source)
-                **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_part_terms + self.count_full_term_only}          
+                **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_part_terms_client + self.count_part_terms_competitor + self.count_full_term_only_client + self.count_full_term_only_competitor}          
             }
         
-        self.logger.info(f"Yielding item: {item}")
-        
+        self.logger.info(f"\n\n\n\nYielding item: {item}\n\n\n\n")
+
         yield item
-
-
-# Use package newspaper3k
-
-    # def parse_article(self, response):
-    #     # Get the full URL of the article
-    #     full_url = response.url
-    #     time.sleep(random.uniform(1, 2))
-    #     # Create an Article object using the full URL
-    #     article = Article(full_url)
-        
-    #     # Download and parse the article
-    #     article.download()
-    #     article.parse()
-    
-    #     # Extract article details
-    #     article_text = article.text  # The main article body
-    #     article_description = article.meta_description  # The meta description
-    #     article_sitename = article.source_url  # The source URL (website hosting the article)
-    #     article_url = article.source_url  # The full article URL
-        
-    #     # Attempt to get source name from the meta data (if available)
-    #     try:
-    #         source = response.xpath("//meta[@property='og:site_name']/@content").get()
-    #         if not source:  # If no content is found, handle it
-    #             source = "Not Available"
-    #     except Exception:
-    #         source = "Not Available"
-    
-    #     # Prepare the final dictionary to return (this is the final yield)
-    #     yield {
-    #         'transaction_id': response.meta['transaction_id'],  
-    #         'search_term': response.meta['search_term'],        
-    #         'country_name': response.meta['country_name'],      
-    #         'country_language': response.meta['country_language'],
-    #         'news_source': source,
-    #         'headline': response.meta['headline'],
-    #         'description': article_description,  # Article's meta description
-    #         'article_datetime': response.meta['article_datetime'],
-    #         'source_link': article_url,  # The URL of the article
-    #         # 'full_html': article.html,  # Full HTML content of the article
-    #         'article_text': article_text,  # Main article content
-    #         'sitename': article_sitename,  # Source website
-    #         **{f"{term.replace(' ', '_').lower()}_count": response.meta['product_match'].get(term, 0) for term in self.count_if_without_ambuja + self.count_if_full_term_only}          
-    #     }
-        
-        
-        
-        
-# # Lua script for scrolling the page
-
-# scroll_script = """
-# function main(splash)
-#     splash.private_mode_enabled = false
-#     splash:set_viewport_full()  -- Set the viewport to full size
-
-#     -- Go to the target URL
-#     splash:go(splash.args.url)
-#     splash:wait(2)  -- Wait a bit longer for the initial page to load
-
-#     local max_scrolls = 10  -- Maximum number of scrolls
-#     local current_scrolls = 0
-#     local last_article_count = 0
-#     local new_article_count = 0
-
-#     -- Loop through scrolling and loading content
-#     while current_scrolls < max_scrolls do
-#         -- Scroll down by 300 pixels
-#         splash:runjs('window.scrollBy(0, 300);')
-#         splash:wait(3)  -- Wait for new content to load (3 seconds)
-
-#         -- Check how many articles are loaded after the scroll using the new CSS selector
-#         new_article_count = splash:runjs('return document.querySelectorAll("c-wiz.PO9Zff").length')
-
-#         -- Debugging: Check the number of articles loaded
-#         print("Articles loaded after scroll: " .. tostring(new_article_count))
-
-#         -- If no new articles are loaded, break the loop
-#         if new_article_count == last_article_count then
-#             print("No new content loaded. Stopping scroll.")
-#             break
-#         end
-
-#         -- Update variables for the next iteration
-#         last_article_count = new_article_count
-#         current_scrolls = current_scrolls + 1
-#     end
-
-#     -- Ensure the page has loaded and capture the HTML content
-#     local page_html = splash:html()
-
-#     -- Return the HTML content of the page for Scrapy to continue scraping
-#     return {
-#         html = page_html,
-#         url = splash.args.url,  -- Return the URL to continue scraping
-#         status_code = 200,      -- Return the status code
-#     }
-# end
-# """

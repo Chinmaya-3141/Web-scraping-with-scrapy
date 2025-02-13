@@ -5,12 +5,13 @@
 
 from scrapy import signals
 from itemadapter import is_item, ItemAdapter
-import time, random
+import time, random, os, ast
 import logging
 from scrapy.http import HtmlResponse
 from scrapy.downloadermiddlewares.retry import RetryMiddleware  # We can inherit from this
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from dotenv import load_dotenv
 
 
 # from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -26,33 +27,34 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
     def __init__(self, *args, **kwargs):
+        self.user_agent_path = '../Config/user_agents.env'
+        load_dotenv(dotenv_path=self.user_agent_path)
+        
         # Set up Firefox WebDriver (headless)
         firefox_options = FirefoxOptions()
         firefox_options.add_argument('--headless')  # Run Firefox in headless mode
-        # Set the custom User-Agent in the WebDriver options
-        # Rotating User-Agent List
-        # user_agents = [
-        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
-        #         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36",
-        #         "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0",
-        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
-        #     ]
-        # List of user agents paired with mobile/desktop info
+
+        # Load .env variables for user agents and screen resolutions
+        user_agents_str = os.getenv("USER_AGENTS")
+        desktop_resolutions_str = os.getenv("DESKTOP_RESOLUTIONS")
+        mobile_resolutions_str = os.getenv("MOBILE_RESOLUTIONS")
+        try:
+            user_agents = ast.literal_eval(user_agents_str)
+            logging.info("Loaded user agents: {user_agents}")    
+        except (ValueError, SyntaxError) as e:
+            logging.info(f"Error parsing the user_agents list: {e}")
+            
+        try:
+            desktop_resolutions = ast.literal_eval(desktop_resolutions_str)
+            logging.info("Loaded desktop resoutions: {desktop_resolutions}")
+        except (ValueError, SyntaxError) as e:
+            logging.info(f"Error parsing the desktop resolution list: {e}")
         
-        user_agents = [
-            ("Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0", False),  # Desktop
-            ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
-            ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36", False),  # Desktop
-            ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36", False),  # Desktop
-            ("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0", False),  # Desktop
-            ("Mozilla/5.0 (Linux; Android 10; Pixel 4 XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36", True),  # Mobile
-            ("Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/537.36", True),  # Mobile
-            ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0", False),  # Desktop
-            ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0", False),  # Desktop
-            ("Mozilla/5.0 (X11; Linux x86_64; rv:79.0) Gecko/20100101 Firefox/79.0", False),  # Desktop
-            ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
-        ]
+        try:
+            mobile_resolutions = ast.literal_eval(mobile_resolutions_str)
+            logging.info("Loaded mobile resolutions: {mobile_resolutions}")
+        except (ValueError, SyntaxError) as e:
+            logging.info(f"Error parsing the mobile resolution list: {e}")
         
         # Randomly select a user agent and its associated mobile/desktop flag
         user_agent, is_mobile = random.choice(user_agents)
@@ -60,21 +62,7 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
         # Apply the selected user-agent to Firefox options
         firefox_options.set_preference("general.useragent.override", user_agent)
         logging.info(f"Used user-agent: {user_agent}")
-        # Define common resolutions for desktop and mobile
-        desktop_resolutions = [
-            (1366, 768),  # Common laptop size
-            (1920, 1080), # Full HD
-            (1280, 800),  # Common laptop size
-            (1440, 900)   # Another common laptop size
-        ]
-        
-        mobile_resolutions = [
-            (375, 667),  # iPhone 6 dimensions (375x667)
-            (360, 640),  # Typical Android screen size
-            (375, 812),  # iPhone X dimensions (375x812)
-            (414, 896)   # iPhone 11 dimensions (414x896)
-        ]
-        
+
         # Choose the appropriate resolution based on the user-agent type (mobile or desktop)
         if is_mobile:
             selected_resolution = random.choice(mobile_resolutions)
@@ -86,16 +74,12 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             # Disable touch events for desktop-like resolutions
             firefox_options.set_preference("dom.w3c_touch_events.enabled", 0)
             logging.info(f"touchscreen: {is_mobile}")
-
         
         # Set the selected window size
         window_width, window_height = selected_resolution
         firefox_options.add_argument(f"--window-size={window_width},{window_height}")
         logging.info(f"Used resolution: {selected_resolution}")
 
-
-        # user_agent = random.choice(user_agents)  # Randomly select a User-Agent from the list
-        # firefox_options.set_preference("general.useragent.override", user_agent)
         self.driver = webdriver.Firefox(options=firefox_options)
 
         # Set up logging
@@ -118,8 +102,8 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             self.logger.info(f"Fetching dynamic page (Selenium): {request.url}")
             self.driver.get(request.url)
 
-            # Generate a random wait time between 2 and 4 seconds
-            rand_wait = random.uniform(3,6)
+            # Generate a random wait time between 5 and 10 seconds
+            rand_wait = random.uniform(3,10)
         
             # Wait for the randomly generated time
             time.sleep(rand_wait)
@@ -127,8 +111,10 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
             # Log the time taken for loading
             self.logger.info(f"Page loaded in {rand_wait} seconds: {request.url}")
 
-            # Get the fully rendered HTML page source from Selenium
+           #Retrieve rendered HTML
             content = self.driver.page_source
+            
+            # Random scrolling, 33.5% of the time.
             sample=random.sample(range(1,12),4)
             if(4 in sample):
                 scroll_height = random.randint(100, 300)
@@ -139,7 +125,8 @@ class NpsnewsscrapeDownloaderMiddleware(RetryMiddleware):
 
             # Log the page content size
             self.logger.info(f"Page content size: {len(content)} characters")
-            # Generate a random wait time between 2 and 4 seconds
+            
+            # Generate a random wait time between 2 and 4 seconds 31.5% of the time
             sample=random.sample(range(1,20),7)
             if(4 in sample):
                 rand_wait_2 = random.uniform(1,3)
@@ -194,6 +181,66 @@ class NpsnewsscrapeSpiderMiddleware:
     def spider_opened(self, spider):
         # Logging that the spider has been opened
         spider.logger.info("Spider opened: %s" % spider.name)
+
+
+        # Set the custom User-Agent in the WebDriver options
+        # Rotating User-Agent List
+        # user_agents = [
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
+        #         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36",
+        #         "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0",
+        #         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36"
+        #     ]
+        # List of user agents paired with mobile/desktop info
+        
+        # user_agents = [
+        #         ("Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0", False),  # Desktop
+        #         ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
+        #         ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36", False),  # Desktop
+        #         ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36", False),  # Desktop
+        #         ("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0", False),  # Desktop
+        #         ("Mozilla/5.0 (Linux; Android 10; Pixel 4 XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36", True),  # Mobile
+        #         ("Mozilla/5.0 (iPhone; CPU iPhone OS 14_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/537.36", True),  # Mobile
+        #         ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0", False),  # Desktop
+        #         ("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0", False),  # Desktop
+        #         ("Mozilla/5.0 (X11; Linux x86_64; rv:79.0) Gecko/20100101 Firefox/79.0", False),  # Desktop
+        #         ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", False),  # Desktop
+        #     ]
+        
+        # # Define common resolutions for desktop and mobile
+        # desktop_resolutions = [
+        #     (1366, 768),  # Common laptop size
+        #     (1920, 1080), # Full HD
+        #     (1280, 800),  # Common laptop size
+        #     (1440, 900)   # Another common laptop size
+        # ]
+        
+        # mobile_resolutions = [
+        #     (375, 667),  # iPhone 6 dimensions (375x667)
+        #     (360, 640),  # Typical Android screen size
+        #     (375, 812),  # iPhone X dimensions (375x812)
+        #     (414, 896)   # iPhone 11 dimensions (414x896)
+        # ]
+
+        # user_agent = random.choice(user_agents)  # Randomly select a User-Agent from the list
+        # firefox_options.set_preference("general.useragent.override", user_agent)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # class NpsnewsscrapeSpiderMiddleware:
