@@ -9,7 +9,8 @@ Created on Fri Feb  7 00:01:00 2025
 # Add article-after-date variable to skip articles beyond certain date - process_article_box().
 # for failure to download with article, try to download using scrapy without selenium first, before falling back to scrapy with selenium - process_article_box(), follow_article().
 # Build sample middleware with SQLAlchemy engine to try working with Postgres. - Pipeline file. Also separate code once JSON is complete.
-# Check output for paywalled articles, build in paywall circumvention methods in case present.
+# Check output for paywalled articles, build in paywall circumvention methods in case present. - No paywalls encountered. Not required.
+# Check output for decode google news link, if source starts with https://news.google.com/ and build in retry mechanism. - Done.
 # (Optional) Pass dictionary to follow_article() instead of function parameters - process_article_box().
 # (Optional) Possibly form all urls and then yield from there - start_requests().
 # Check storage options for data, complete html, etc. - Mongo, Postgres.
@@ -172,8 +173,23 @@ class NewsscrapeSpider(scrapy.Spider):
             decoded_url = gnewsdecoder(link, interval=1)
             if decoded_url.get("status"):
                 source_link = decoded_url["decoded_url"]
+                
+                retry_count = 0  # Initialize a counter for retries
+                # Check if the returned link starts with https://news.google.com/
+                while source_link.startswith("https://news.google.com/") and retry_count < 3:
+                    # Try decoding again with the same or updated parameters
+                    decoded_url = gnewsdecoder(link, interval=1)
+                    if decoded_url.get("status"):
+                        source_link = decoded_url["decoded_url"]
+                    retry_count += 1  # Increment the retry count
+        
         except Exception as e:
             logging.error(f"Error occurred: {e}")
+
+        
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+
             
         transaction_id = str(uuid.uuid4()) 
         if response.meta['language'] not in self.unsupported_language_region_codes:
