@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = "npsnewsscrape.spiders"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "npsnewsscrape (+http://www.yourdomain.com)"
-# USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -33,7 +33,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 1
 
 # Adds randomness to the delay
 # RANDOMIZE_DOWNLOAD_DELAY = True 
@@ -137,8 +137,8 @@ output_path = "../Outputs/" + output_file
 FEED_URI = output_path
 
 RETRY_ENABLED = True
-RETRY_TIMES = 5  # Number of retries
-RETRY_HTTP_CODES = [408, 429, 500, 502, 503, 504]#,443]  # Retry on 429 errors
+RETRY_TIMES = 3  # Number of retries
+RETRY_HTTP_CODES = [406, 408, 429, 500, 502, 503, 504]#,443]  # Retry on 429 errors
 # RETRY_PRIORITY_ADJUST = 1  # Adjust the retry priority (can be positive or negative)
 RETRY_DELAY = 15  # Delay between retries, in seconds (adjust this)
 

@@ -6,10 +6,14 @@ Created on Fri Feb  7 00:01:00 2025
 @author: chinmaya
 """
 # Changes:
-# Update and check metadata being passed - Done.
-# Add variables for competitor brands and mentions - Done.
-# For parse article, if not allowed, try again by calling selenium middleware - Done.
-# Add Ollama parsing for unsupported languages in parse_article - Pending.
+# Add article-after-date variable to skip articles beyond certain date - process_article_box().
+# for failure to download with article, try to download using scrapy without selenium first, before falling back to scrapy with selenium - process_article_box(), follow_article().
+# Build sample middleware with SQLAlchemy engine to try working with Postgres. - Pipeline file. Also separate code once JSON is complete.
+# Check output for paywalled articles, build in paywall circumvention methods in case present.
+# (Optional) Pass dictionary to follow_article() instead of function parameters - process_article_box().
+# (Optional) Possibly form all urls and then yield from there - start_requests().
+# Check storage options for data, complete html, etc. - Mongo, Postgres.
+# Find options to train models to extract article from code. - Ollama, Pytorch.
 
 
 # import asyncio
@@ -23,15 +27,15 @@ from newspaper import Article, ArticleException
 from scrapy.http import HtmlResponse
 from twisted.internet.error import ConnectionLost, TimeoutError
 
-import re, uuid, string, os, json, time, logging
+import re, uuid, string, os, json, logging #time
 from datetime import datetime
 from dotenv import load_dotenv
 import requests
 
 
 brand_path = '../../Config/ambuja.env'
-# language_path = '../Config/language_region_codes.env'
-language_path = '../Config/language_limited.env'
+language_path = '../Config/language_region_codes.env'
+# language_path = '../Config/language_limited.env'
 
 load_dotenv(dotenv_path=brand_path)
 load_dotenv(dotenv_path=language_path)
@@ -247,6 +251,8 @@ class NewsscrapeSpider(scrapy.Spider):
         self.logger.info(f"visiting url: {response.meta['source_link']}")
         # meta = response.meta
         # self.logger.warning(f"\n\n\n\n\n\n\n\n passed metadata: {response.meta}\n\n\n\n\n\n\n\n")
+        
+        source_html = response.text
 
         # Search for description
         if(response.meta.get('description')):
@@ -354,6 +360,8 @@ class NewsscrapeSpider(scrapy.Spider):
             article_body = response.meta.get('article_body')
         else:
             article_body=[]
+        
+        
                 
         # Join headline and description, clean string by removing punctuation, make lowercase
         clean_search_string = self.clean_text(response.meta.get('headline'),description,article_body)
@@ -409,6 +417,7 @@ class NewsscrapeSpider(scrapy.Spider):
                 'article_images':images,
                 'all_images':all_images,
                 'article_metadata':article_metadata,
+                'full_html':source_html,
                 #'source': domain,  # Extracted domain (website source)
                 **{f"{term.replace(' ', '_').lower()}_count": product_match.get(term, 0) for term in self.count_part_terms_client + self.count_part_terms_competitor + self.count_full_term_only_client + self.count_full_term_only_competitor}          
             }

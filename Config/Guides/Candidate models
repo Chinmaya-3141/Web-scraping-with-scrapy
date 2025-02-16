@@ -1,0 +1,9 @@
+Model	Parameters	VRAM Requirement	Notes
+T5-Small	60M	Low	Best for HTML-to-text tasks
+DistilBERT	66M	Low	Fast and light BERT variant
+BART-Base	139M	Medium	Good for text generation tasks
+ALBERT	12M	Low	Very memory-efficient BERT
+TinyBERT	4.4M	Very Low	Excellent for resource-constrained setups
+Pegasus-Small	135M	Medium	Good for summarization tasks
+GPT-2 Small	124M	Medium	Can be adapted for extraction
+BERT-Base	110M	Medium	Requires adjustment for generation tasks
