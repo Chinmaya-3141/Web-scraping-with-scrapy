@@ -14,6 +14,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from collections import defaultdict
+import logging
 
 # Define the template for Ollama's instructions
 template = (
@@ -162,14 +163,15 @@ def get_highest_score_label(categorized_emotions):
         return None, 0
 
 
-def save_output_to_json(results, filename="Outputs/articles_output.json"):
+def save_output_to_json(results, filename="../Outputs/articles_output.json"):
     """Save the output into a single JSON file with results for multiple URLs."""
-    os.makedirs("Outputs", exist_ok=True)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)  # Ensure the parent directory exists
     
     with open(filename, 'w', encoding='utf-8') as json_file:
         json.dump(results, json_file, ensure_ascii=False, indent=4)
         
     print(f"All outputs have been written to {filename}")
+
 
 
 def process_multiple_urls(urls):
@@ -180,15 +182,19 @@ def process_multiple_urls(urls):
     for url in urls:
         start_time = time.time()  # Start timing for this article
         print(f"Processing {url}...")
-        
+        print("requested html")
         html = fetch_html(url)
+        print("fetched html")
         if html:
+            print("Html true")
             # Extract and clean the body content
             body_content = extract_body_content(html)
             cleaned_content = clean_body_content(body_content)
+            print("content cleaned")
             
             # Classify emotions in the article text
             categorized_emotions = classify_emotions(cleaned_content)
+            print("classified emotion")
             
             # Get the emotion with the highest score
             highest_emotion, highest_score = get_highest_score_label(categorized_emotions)
@@ -216,3 +222,29 @@ def process_multiple_urls(urls):
             })
     
     return all_results
+
+# List of URLs you want to process
+urls = [
+    "https://hindi.economictimes.com/wealth/bachat/before-budget-2025-cement-stock-idea-brokerages-incred-given-add-rating-on-ambuja-cements-share-check-ambuja-cements-share-target-price/articleshow/117797821.cms",
+    "https://hindi.economictimes.com/markets/share-bazaar/ambuja-cements-share-price-motilal-oswal-bulish-valuation-attractive-target-price/articleshow/115890927.cms",
+    "https://hindi.moneycontrol.com/news/markets/adani-group-news-ambuja-cements-to-acquire-over-46-percent-stake-in-orient-cement-from-promoters-public-at-rupee-8100-crore-valuation-1931832.html",
+    "https://www.navarashtra.com/business/adanis-ambuja-cement-will-be-bought-orient-cement-prominent-cement-company-in-the-country-670783.html",
+    "https://marathi.economictimes.com/business-news/ambuja-cements-signs-agreement-to-buy-orient-cement-limited-for-rs-8100-crore/articleshow/114450514.cms",
+    "https://marathi.latestly.com/india/adani-group-acquired-penna-cement-company-for-rs-10422-crore-555927.html",
+    "https://marathi.economictimes.com/business-news/adani-groups-ambuja-cement-announced-acquisition-of-penna-cement-industries-limited-for-rs-10422-crore/articleshow/110973998.cms",
+    "https://www.marketsmojo.com/news/stocks-in-action/ambuja-cements-gains-3-18-on-february-4-2025-despite-recent-decline-2-748842",
+    "https://www.constructionweekonline.in/business/jupiter-wagons-secures-major-order-from-ambuja-cements-and-acc",
+    "https://www.businesstoday.in/markets/stocks/story/sanghi-industries-merger-prefer-ambuja-cements-to-acc-65-upside-possible-on-adani-stock-says-investec-457709-2024-12-18",
+    "https://legal.economictimes.indiatimes.com/news/corporate-business/ambuja-cements-adani-merger-receives-no-objection-letter-from-stock-exchanges/116885509",
+    "https://www.businesstoday.in/markets/company-stock/story/ambuja-cements-q3-earnings-net-profit-rises-242-revenue-at-rs-8415-crore-462441-2025-01-29",
+    "https://www.sarkaritel.com/ambuja-cements-net-profit-more-than-doubles-in-q3/",
+    "https://www.thehindu.com/business/ambuja-cements-to-merge-sanghi-industries-penna-cement-with-itself/article68996624.ece",
+    "https://www.businesstoday.in/markets/stocks/story/ultratech-jk-cements-ambuja-cements-axis-shares-top-3-stock-picks-from-cement-space-with-29-upside-464054-2025-02-10"
+]
+
+# Call the function to process the URLs and get the results
+results = process_multiple_urls(urls)
+
+# Optionally, print the results or save them to a JSON file
+print(results)  # Prints all results to the console
+save_output_to_json(results)  # Saves the results to a JSON file
